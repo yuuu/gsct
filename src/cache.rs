@@ -33,7 +33,13 @@ pub fn load() -> Result<Vec<String>> {
 
 /// path から NUL 区切りのファイル一覧を読み込む
 fn read_from(path: &Path) -> Result<Vec<String>> {
-    todo!()
+    let content = fs::read_to_string(path)
+        .context("番号とファイルの対応が見つかりません。先に gs を実行してください")?;
+    Ok(content
+        .split('\0')
+        .filter(|file| !file.is_empty())
+        .map(String::from)
+        .collect())
 }
 
 #[cfg(test)]

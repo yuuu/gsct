@@ -15,7 +15,11 @@ pub fn run(args: &[String]) -> Result<i32> {
 
 /// コマンドを実行し、終了コードを返す
 pub fn run_command(program: &str, args: &[String]) -> Result<i32> {
-    todo!()
+    let status = Command::new(program)
+        .args(args)
+        .status()
+        .with_context(|| format!("{program} を実行できませんでした"))?;
+    Ok(status.code().unwrap_or(1))
 }
 
 #[cfg(test)]

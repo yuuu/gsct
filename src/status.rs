@@ -1,3 +1,10 @@
+use std::io::IsTerminal;
+use std::path::{Path, PathBuf};
+
+use anyhow::Result;
+
+use crate::git;
+
 /// ファイルが属するグループ（表示順に並べている）
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Group {
@@ -5,6 +12,35 @@ pub enum Group {
     Unmerged,
     Unstaged,
     Untracked,
+}
+
+impl Group {
+    /// 表示する順番
+    const ALL: [Group; 4] = [
+        Group::Staged,
+        Group::Unmerged,
+        Group::Unstaged,
+        Group::Untracked,
+    ];
+
+    fn heading(self) -> &'static str {
+        match self {
+            Group::Staged => "Changes to be committed",
+            Group::Unmerged => "Unmerged paths",
+            Group::Unstaged => "Changes not staged for commit",
+            Group::Untracked => "Untracked files",
+        }
+    }
+
+    /// ANSI カラーコードの色番号（33 = 黄、31 = 赤、32 = 緑、36 = シアン）
+    fn color(self) -> &'static str {
+        match self {
+            Group::Staged => "33",
+            Group::Unmerged => "31",
+            Group::Unstaged => "32",
+            Group::Untracked => "36",
+        }
+    }
 }
 
 /// ファイルの変更の種類
@@ -24,6 +60,42 @@ pub enum Kind {
     DeletedByUs,
     BothAdded,
     BothModified,
+}
+
+impl Kind {
+    fn label(self) -> &'static str {
+        match self {
+            Kind::Modified => "modified",
+            Kind::NewFile => "new file",
+            Kind::Deleted => "deleted",
+            Kind::Renamed => "renamed",
+            Kind::Copied => "copied",
+            Kind::TypeChange => "typechange",
+            Kind::Untracked => "untracked",
+            Kind::BothDeleted => "both deleted",
+            Kind::AddedByUs => "added by us",
+            Kind::DeletedByThem => "deleted by them",
+            Kind::AddedByThem => "added by them",
+            Kind::DeletedByUs => "deleted by us",
+            Kind::BothAdded => "both added",
+            Kind::BothModified => "both modified",
+        }
+    }
+
+    fn color(self) -> &'static str {
+        match self {
+            Kind::Deleted | Kind::BothDeleted | Kind::DeletedByThem | Kind::DeletedByUs => "0;31",
+            Kind::Modified | Kind::BothModified => "0;32",
+            Kind::NewFile
+            | Kind::Copied
+            | Kind::AddedByUs
+            | Kind::AddedByThem
+            | Kind::BothAdded => "0;33",
+            Kind::Renamed => "0;34",
+            Kind::TypeChange => "0;35",
+            Kind::Untracked => "0;36",
+        }
+    }
 }
 
 /// git status の1行分（1ファイル分）の情報
@@ -162,6 +234,112 @@ fn classify(x: char, y: char, path: &str) -> Vec<Entry> {
     entries
 }
 
+/// `gs` の本体: git status を番号付きで表示する
+pub fn run() -> Result<()> {
+    let root = PathBuf::from(git::output(&["rev-parse", "--show-toplevel"])?.trim());
+    let output = git::output(&["status", "--porcelain", "-b", "-z"])?;
+    let status = parse(&output);
+
+    let cwd = std::env::current_dir()?;
+    let color = std::io::stdout().is_terminal();
+    let (text, _files) = render(&status, &root, &cwd, color);
+    print!("{text}");
+
+    Ok(())
+}
+
+/// 文字に色を付ける（color が false なら何もしない）
+struct Painter {
+    enabled: bool,
+}
+
+impl Painter {
+    fn paint(&self, code: &str, text: &str) -> String {
+        if self.enabled {
+            format!("\x1b[{code}m{text}\x1b[0m")
+        } else {
+            text.to_string()
+        }
+    }
+}
+
+/// 表示用の文字列と、番号順に並べたファイルの絶対パスの一覧を作る
+pub fn render(status: &Status, root: &Path, cwd: &Path, color: bool) -> (String, Vec<PathBuf>) {
+    let p = Painter { enabled: color };
+    let mut out = String::new();
+    let mut files = Vec::new();
+
+    // リモートとのコミット差分（例: "-2/+1"）
+    let mut diff = Vec::new();
+    if status.behind > 0 {
+        diff.push(format!("-{}", status.behind));
+    }
+    if status.ahead > 0 {
+        diff.push(format!("+{}", status.ahead));
+    }
+    let diff = if diff.is_empty() {
+        String::new()
+    } else {
+        format!(
+            "  {}  {}",
+            p.paint("2;37", "|"),
+            p.paint("0;33", &diff.join("/"))
+        )
+    };
+
+    let header = format!(
+        "{} On branch: {}{}",
+        p.paint("2;37", "#"),
+        p.paint("1", &status.branch),
+        diff
+    );
+
+    if status.entries.is_empty() {
+        let clean = p.paint("0;32", "No changes (working directory clean)");
+        out.push_str(&format!("{header}  {}  {clean}\n", p.paint("2;37", "|")));
+        return (out, files);
+    }
+
+    out.push_str(&format!("{header}\n{}\n", p.paint("2;37", "#")));
+
+    // 10件以上あるときは番号の桁をそろえる
+    let width = status.entries.len().to_string().len();
+
+    for group in Group::ALL {
+        let entries: Vec<&Entry> = status.entries.iter().filter(|e| e.group == group).collect();
+        if entries.is_empty() {
+            continue;
+        }
+
+        let hash = p.paint(&format!("0;{}", group.color()), "#");
+        let arrow = p.paint(&format!("1;{}", group.color()), "➤");
+        out.push_str(&format!("{arrow} {}\n{hash}\n", group.heading()));
+
+        for entry in entries {
+            let absolute = root.join(&entry.path);
+            let relative = pathdiff::diff_paths(&absolute, cwd).unwrap_or(absolute.clone());
+            files.push(absolute);
+
+            let label = p.paint(entry.kind.color(), &format!("{:>15}", entry.kind.label()));
+            let number = format!(
+                "{}{:>width$}{}",
+                p.paint("2;37", "["),
+                files.len(),
+                p.paint("2;37", "]")
+            );
+            let path = p.paint(
+                &format!("0;{}", group.color()),
+                &relative.display().to_string(),
+            );
+            out.push_str(&format!("{hash} {label}: {number} {path}\n"));
+        }
+
+        out.push_str(&format!("{hash}\n"));
+    }
+
+    (out, files)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -214,6 +392,33 @@ mod tests {
             vec![
                 Entry::new(Group::Staged, Kind::Renamed, "new.rs"),
                 Entry::new(Group::Untracked, Kind::Untracked, "a.txt"),
+            ]
+        );
+    }
+
+    #[test]
+    fn renders_numbered_files_relative_to_cwd() {
+        let status = parse("## main [ahead 1]\0M  src/main.rs\0?? memo.txt\0");
+        let (text, files) = render(&status, Path::new("/repo"), Path::new("/repo/src"), false);
+
+        let expected = "\
+# On branch: main  |  +1
+#
+➤ Changes to be committed
+#
+#        modified: [1] main.rs
+#
+➤ Untracked files
+#
+#       untracked: [2] ../memo.txt
+#
+";
+        assert_eq!(text, expected);
+        assert_eq!(
+            files,
+            vec![
+                PathBuf::from("/repo/src/main.rs"),
+                PathBuf::from("/repo/memo.txt")
             ]
         );
     }

@@ -56,10 +56,7 @@ fn main() {
 fn run() -> Result<i32> {
     let cli = Cli::parse();
     match cli.command {
-        Command::Status => {
-            let output = git::output(&["status", "--porcelain", "-b", "-z"])?;
-            println!("{:#?}", status::parse(&output));
-        }
+        Command::Status => status::run()?,
         Command::Exec { args } => println!("TODO: exec {args:?}"),
         Command::Aliases => println!("TODO: aliases"),
         Command::InstallLinks { dir, force, skip } => {

@@ -5,6 +5,8 @@ use anyhow::Result;
 use clap::{Parser, Subcommand};
 
 mod cache;
+mod exec;
+mod expand;
 mod git;
 mod status;
 
@@ -56,16 +58,26 @@ fn main() {
 
 fn run() -> Result<i32> {
     let cli = Cli::parse();
-    match cli.command {
-        Command::Status => status::run()?,
-        Command::Exec { args } => println!("TODO: exec {args:?}"),
-        Command::Aliases => println!("TODO: aliases"),
-        Command::InstallLinks { dir, force, skip } => {
-            println!("TODO: install-links {dir:?} force={force} skip={skip:?}")
+    let code = match cli.command {
+        Command::Status => {
+            status::run()?;
+            0
         }
-        Command::Alias(args) => println!("TODO: alias {args:?}"),
-    }
-    Ok(0)
+        Command::Exec { args } => exec::run(&args)?,
+        Command::Aliases => {
+            println!("TODO: aliases");
+            0
+        }
+        Command::InstallLinks { dir, force, skip } => {
+            println!("TODO: install-links {dir:?} force={force} skip={skip:?}");
+            0
+        }
+        Command::Alias(args) => {
+            println!("TODO: alias {args:?}");
+            0
+        }
+    };
+    Ok(code)
 }
 
 #[cfg(test)]

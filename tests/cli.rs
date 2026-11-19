@@ -2,7 +2,7 @@ use std::fs;
 use std::path::Path;
 use std::process::{Command, Output};
 
-/// テスト対象の gsct をディレクトリ dir で実行する
+/// Runs the gsct under test in the directory dir
 fn gsct(dir: &Path, args: &[&str]) -> Output {
     Command::new(env!("CARGO_BIN_EXE_gsct"))
         .args(args)
@@ -11,7 +11,7 @@ fn gsct(dir: &Path, args: &[&str]) -> Output {
         .unwrap()
 }
 
-/// git を実行して標準出力を返す
+/// Runs git and returns its standard output
 fn git(dir: &Path, args: &[&str]) -> String {
     let output = Command::new("git")
         .args(args)
@@ -50,7 +50,7 @@ fn unknown_alias_fails() {
     assert!(
         String::from_utf8(output.stderr)
             .unwrap()
-            .contains("不明な alias です")
+            .contains("unknown alias")
     );
 }
 

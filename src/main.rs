@@ -13,7 +13,7 @@ mod git;
 mod links;
 mod status;
 
-/// scm_breeze 風の git status shortcuts と git alias
+/// Git status shortcuts and git aliases, inspired by scm_breeze
 #[derive(Parser)]
 #[command(version, about)]
 struct Cli {
@@ -23,28 +23,28 @@ struct Cli {
 
 #[derive(Subcommand)]
 enum Command {
-    /// 番号付きで git status を表示する（gs）
+    /// Show git status with numbered files (gs)
     Status,
-    /// 番号をファイルパスに展開して任意のコマンドを実行する（ge）
+    /// Run any command with numbers expanded to file paths (ge)
     Exec {
-        /// 実行するコマンドと引数
+        /// Command to run and its arguments
         #[arg(required = true, trailing_var_arg = true, allow_hyphen_values = true)]
         args: Vec<String>,
     },
-    /// alias の一覧を表示する
+    /// List the aliases
     Aliases,
-    /// alias 名のシンボリックリンクを作成する
+    /// Create symlinks named after the aliases
     InstallLinks {
-        /// リンクを作成するディレクトリ（例: ~/.local/bin）
+        /// Directory to create the links in (e.g. ~/.local/bin)
         dir: PathBuf,
-        /// 既存のコマンドと名前が衝突しても作成する
+        /// Create links even if they collide with existing commands
         #[arg(long)]
         force: bool,
-        /// 作成しない alias 名（カンマ区切り。例: --skip gs,gm）
+        /// Alias names to skip (comma-separated, e.g. --skip gs,gm)
         #[arg(long, value_delimiter = ',')]
         skip: Vec<String>,
     },
-    /// alias を実行する（例: gsct gd 1）
+    /// Run an alias (e.g. gsct gd 1)
     #[command(external_subcommand)]
     Alias(Vec<String>),
 }
@@ -80,7 +80,7 @@ fn run() -> Result<i32> {
     Ok(code)
 }
 
-/// `gd 1` のようにシンボリックリンク経由で呼ばれたら、`gsct gd 1` として扱う
+/// When called through a symlink such as `gd 1`, treat it as `gsct gd 1`
 fn args_with_alias_name(mut args: Vec<String>) -> Vec<String> {
     let program = args
         .first()
@@ -114,7 +114,7 @@ mod tests {
     fn unknown_subcommand_is_treated_as_alias() {
         let cli = Cli::try_parse_from(["gsct", "gd", "1", "--cached"]).unwrap();
         let Command::Alias(args) = cli.command else {
-            panic!("alias として解釈されていません");
+            panic!("not parsed as an alias");
         };
         assert_eq!(args, ["gd", "1", "--cached"]);
     }
@@ -123,7 +123,7 @@ mod tests {
     fn exec_keeps_hyphen_arguments() {
         let cli = Cli::try_parse_from(["gsct", "exec", "ls", "-l", "1"]).unwrap();
         let Command::Exec { args } = cli.command else {
-            panic!("exec として解釈されていません");
+            panic!("not parsed as exec");
         };
         assert_eq!(args, ["ls", "-l", "1"]);
     }
@@ -133,7 +133,7 @@ mod tests {
         let cli =
             Cli::try_parse_from(["gsct", "install-links", "/tmp/bin", "--skip", "gs,gm"]).unwrap();
         let Command::InstallLinks { dir, force, skip } = cli.command else {
-            panic!("install-links として解釈されていません");
+            panic!("not parsed as install-links");
         };
         assert_eq!(dir, PathBuf::from("/tmp/bin"));
         assert!(!force);
@@ -145,7 +145,7 @@ mod tests {
         assert!(Cli::try_parse_from(["gsct", "exec"]).is_err());
     }
 
-    /// テスト用に &str の配列を Vec<String> に変換する
+    /// Converts an array of &str into Vec<String> for tests
     fn strings(items: &[&str]) -> Vec<String> {
         items.iter().map(|s| s.to_string()).collect()
     }

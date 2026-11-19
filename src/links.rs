@@ -8,10 +8,10 @@ use anyhow::{Context, Result};
 
 use crate::aliases;
 
-/// alias 名のシンボリックリンクを dir に作成する
+/// Creates symlinks named after the aliases in dir
 pub fn install(dir: &Path, force: bool, skip: &[String]) -> Result<()> {
-    let exe = env::current_exe().context("gsct の実行ファイルの場所を取得できませんでした")?;
-    fs::create_dir_all(dir).with_context(|| format!("{} を作成できませんでした", dir.display()))?;
+    let exe = env::current_exe().context("failed to find the path of the gsct executable")?;
+    fs::create_dir_all(dir).with_context(|| format!("failed to create {}", dir.display()))?;
     let dir = fs::canonicalize(dir)?;
     let path_var = env::var_os("PATH").unwrap_or_default();
 
@@ -22,36 +22,35 @@ pub fn install(dir: &Path, force: bool, skip: &[String]) -> Result<()> {
 
     for name in names {
         if skip.iter().any(|s| s == name) {
-            println!("skip     {name}（--skip で指定）");
+            println!("skip     {name} (--skip)");
             continue;
         }
 
         let link = dir.join(name);
 
-        // すでに同じ名前のファイルがある場合
+        // A file with the same name already exists
         if link.symlink_metadata().is_ok() {
             if fs::read_link(&link).ok() == Some(exe.clone()) {
                 println!("exists   {name}");
                 continue;
             }
             if !force {
-                eprintln!("skip     {name}（{} が既にあります）", link.display());
+                eprintln!("skip     {name} ({} already exists)", link.display());
                 continue;
             }
             fs::remove_file(&link)?;
         } else if let Some(found) = find_in_path(name, &path_var, &dir) {
-            // PATH 上に同じ名前のコマンドがある場合
+            // A command with the same name exists on PATH
             if !force {
                 eprintln!(
-                    "skip     {name}（既存のコマンド {} と衝突します）",
+                    "skip     {name} (collides with the existing command {})",
                     found.display()
                 );
                 continue;
             }
         }
 
-        symlink(&exe, &link)
-            .with_context(|| format!("{} を作成できませんでした", link.display()))?;
+        symlink(&exe, &link).with_context(|| format!("failed to create {}", link.display()))?;
         println!("created  {}", link.display());
     }
 

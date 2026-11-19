@@ -5,7 +5,7 @@ use anyhow::Result;
 
 use crate::{cache, git};
 
-/// ファイルが属するグループ（表示順に並べている）
+/// Group a file belongs to (in display order)
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Group {
     Staged,
@@ -15,7 +15,7 @@ pub enum Group {
 }
 
 impl Group {
-    /// 表示する順番
+    /// Display order
     const ALL: [Group; 4] = [
         Group::Staged,
         Group::Unmerged,
@@ -32,7 +32,7 @@ impl Group {
         }
     }
 
-    /// ANSI カラーコードの色番号（33 = 黄、31 = 赤、32 = 緑、36 = シアン）
+    /// ANSI color code (33 = yellow, 31 = red, 32 = green, 36 = cyan)
     fn color(self) -> &'static str {
         match self {
             Group::Staged => "33",
@@ -43,7 +43,7 @@ impl Group {
     }
 }
 
-/// ファイルの変更の種類
+/// Kind of change to a file
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Kind {
     Modified,
@@ -98,7 +98,7 @@ impl Kind {
     }
 }
 
-/// git status の1行分（1ファイル分）の情報
+/// One entry (one file) of git status
 #[derive(Debug, PartialEq, Eq)]
 pub struct Entry {
     pub group: Group,
@@ -116,7 +116,7 @@ impl Entry {
     }
 }
 
-/// git status 全体の情報
+/// The whole git status
 #[derive(Debug, Default, PartialEq, Eq)]
 pub struct Status {
     pub branch: String,
@@ -125,19 +125,19 @@ pub struct Status {
     pub entries: Vec<Entry>,
 }
 
-/// `git status --porcelain -b -z` の出力を解析する
+/// Parses the output of `git status --porcelain -b -z`
 pub fn parse(output: &str) -> Status {
     let mut status = Status::default();
     let mut fields = output.split('\0');
 
     while let Some(field) = fields.next() {
-        // 先頭の "## " で始まる項目はブランチ情報
+        // An entry starting with "## " is the branch information
         if let Some(branch_line) = field.strip_prefix("## ") {
             parse_branch(branch_line, &mut status);
             continue;
         }
 
-        // それ以外は "XY パス" の形式（X = ステージ、Y = ワークツリーの状態）
+        // Other entries are "XY path" (X = index status, Y = work tree status)
         let mut chars = field.chars();
         let (Some(x), Some(y)) = (chars.next(), chars.next()) else {
             continue;
@@ -146,7 +146,7 @@ pub fn parse(output: &str) -> Status {
             continue;
         };
 
-        // リネーム・コピーの場合は、次の項目に元のパスが入っているので読み飛ばす
+        // For renames and copies, the next entry holds the original path, so skip it
         if x == 'R' || x == 'C' {
             fields.next();
         }
@@ -157,8 +157,8 @@ pub fn parse(output: &str) -> Status {
     status
 }
 
-/// ブランチ情報を解析する
-/// 例: "main...origin/main [ahead 1, behind 2]"、"No commits yet on main"
+/// Parses the branch information
+/// e.g. "main...origin/main [ahead 1, behind 2]", "No commits yet on main"
 fn parse_branch(line: &str, status: &mut Status) {
     let line = line.strip_prefix("No commits yet on ").unwrap_or(line);
 
@@ -181,10 +181,10 @@ fn parse_branch(line: &str, status: &mut Status) {
     }
 }
 
-/// XY の2文字から、どのグループのどの変更かを判定する
-/// 1つのファイルが「ステージ済み」と「未ステージ」の両方に入ることもあるので Vec で返す
+/// Determines the group and kind of change from the two XY characters
+/// Returns a Vec because a file can be both staged and unstaged
 fn classify(x: char, y: char, path: &str) -> Vec<Entry> {
-    // コンフリクト中のファイル
+    // Files with conflicts
     let unmerged = match (x, y) {
         ('D', 'D') => Some(Kind::BothDeleted),
         ('A', 'U') => Some(Kind::AddedByUs),
@@ -199,14 +199,14 @@ fn classify(x: char, y: char, path: &str) -> Vec<Entry> {
         return vec![Entry::new(Group::Unmerged, kind, path)];
     }
 
-    // 未追跡のファイル
+    // Untracked files
     if x == '?' && y == '?' {
         return vec![Entry::new(Group::Untracked, Kind::Untracked, path)];
     }
 
     let mut entries = Vec::new();
 
-    // X: ステージ済みの変更
+    // X: staged changes
     let staged = match x {
         'M' => Some(Kind::Modified),
         'A' => Some(Kind::NewFile),
@@ -220,7 +220,7 @@ fn classify(x: char, y: char, path: &str) -> Vec<Entry> {
         entries.push(Entry::new(Group::Staged, kind, path));
     }
 
-    // Y: まだステージしていない変更
+    // Y: changes not staged yet
     let unstaged = match y {
         'M' => Some(Kind::Modified),
         'D' => Some(Kind::Deleted),
@@ -234,7 +234,7 @@ fn classify(x: char, y: char, path: &str) -> Vec<Entry> {
     entries
 }
 
-/// `gs` の本体: git status を番号付きで表示する
+/// Implements `gs`: shows git status with numbered files
 pub fn run() -> Result<()> {
     let root = PathBuf::from(git::output(&["rev-parse", "--show-toplevel"])?.trim());
     let output = git::output(&["status", "--porcelain", "-b", "-z"])?;
@@ -250,7 +250,7 @@ pub fn run() -> Result<()> {
     Ok(())
 }
 
-/// 文字に色を付ける（color が false なら何もしない）
+/// Colors text (does nothing when color is false)
 struct Painter {
     enabled: bool,
 }
@@ -265,13 +265,13 @@ impl Painter {
     }
 }
 
-/// 表示用の文字列と、番号順に並べたファイルの絶対パスの一覧を作る
+/// Builds the text to display and the absolute paths of the files in numbered order
 pub fn render(status: &Status, root: &Path, cwd: &Path, color: bool) -> (String, Vec<PathBuf>) {
     let p = Painter { enabled: color };
     let mut out = String::new();
     let mut files = Vec::new();
 
-    // リモートとのコミット差分（例: "-2/+1"）
+    // Commits behind/ahead of the remote (e.g. "-2/+1")
     let mut diff = Vec::new();
     if status.behind > 0 {
         diff.push(format!("-{}", status.behind));
@@ -304,7 +304,7 @@ pub fn render(status: &Status, root: &Path, cwd: &Path, color: bool) -> (String,
 
     out.push_str(&format!("{header}\n{}\n", p.paint("2;37", "#")));
 
-    // 10件以上あるときは番号の桁をそろえる
+    // Align the numbers when there are 10 or more files
     let width = status.entries.len().to_string().len();
 
     for group in Group::ALL {

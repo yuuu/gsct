@@ -2,17 +2,17 @@
 rust = { version = "1.98.1", components = "rustfmt,clippy" }
 
 [tasks.fmt]
-description = "フォーマットを確認する"
+description = "Check formatting"
 run = "cargo fmt --check"
 
 [tasks.lint]
-description = "clippy で静的解析する（警告もエラー扱い）"
+description = "Lint with clippy (warnings are errors)"
 run = "cargo clippy --all-targets -- -D warnings"
 
 [tasks.test]
-description = "テストを実行する"
+description = "Run tests"
 run = "cargo test"
 
 [tasks.ci]
-description = "CI と同じチェックをまとめて実行する"
+description = "Run the same checks as CI"
 depends = ["fmt", "lint", "test"]

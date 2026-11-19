@@ -4,21 +4,19 @@ use anyhow::{Context, Result};
 
 use crate::expand;
 
-/// `ge` の本体: 番号を展開して任意のコマンドを実行する（例: ge vim 1）
+/// Implements `ge`: expands numbers and runs any command (e.g. ge vim 1)
 pub fn run(args: &[String]) -> Result<i32> {
     let args = expand::expand_with_cache(args)?;
-    let (program, rest) = args
-        .split_first()
-        .context("実行するコマンドを指定してください")?;
+    let (program, rest) = args.split_first().context("specify a command to run")?;
     run_command(program, rest)
 }
 
-/// コマンドを実行し、終了コードを返す
+/// Runs a command and returns its exit code
 pub fn run_command(program: &str, args: &[String]) -> Result<i32> {
     let status = Command::new(program)
         .args(args)
         .status()
-        .with_context(|| format!("{program} を実行できませんでした"))?;
+        .with_context(|| format!("failed to run {program}"))?;
     Ok(status.code().unwrap_or(1))
 }
 

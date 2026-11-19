@@ -53,3 +53,43 @@ fn unknown_alias_fails() {
             .contains("不明な alias です")
     );
 }
+
+#[test]
+fn install_links_skips_names_of_existing_commands() {
+    let bin = tempfile::tempdir().unwrap();
+    let other = tempfile::tempdir().unwrap();
+    fs::write(other.path().join("gd"), "").unwrap();
+
+    let output = Command::new(env!("CARGO_BIN_EXE_gsct"))
+        .arg("install-links")
+        .arg(bin.path())
+        .env("PATH", other.path())
+        .output()
+        .unwrap();
+
+    assert!(output.status.success());
+    assert!(bin.path().join("ga").is_symlink());
+    assert!(!bin.path().join("gd").exists());
+}
+
+#[test]
+fn alias_link_runs_the_alias() {
+    let repo = tempfile::tempdir().unwrap();
+    git(repo.path(), &["init", "-q"]);
+    let bin = tempfile::tempdir().unwrap();
+    let install = gsct(
+        repo.path(),
+        &["install-links", bin.path().to_str().unwrap(), "--force"],
+    );
+    assert!(install.status.success());
+
+    // gtop = git rev-parse --show-toplevel
+    let output = Command::new(bin.path().join("gtop"))
+        .current_dir(repo.path())
+        .output()
+        .unwrap();
+
+    let toplevel = String::from_utf8(output.stdout).unwrap();
+    let expected = fs::canonicalize(repo.path()).unwrap();
+    assert_eq!(toplevel.trim(), expected.to_str().unwrap());
+}

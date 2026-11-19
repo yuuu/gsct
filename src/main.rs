@@ -4,9 +4,9 @@ use std::process;
 use anyhow::Result;
 use clap::{Parser, Subcommand};
 
+mod cache;
 mod git;
 mod status;
-use crate::{cache, git};
 
 /// scm_breeze 風の git status shortcuts と git alias
 #[derive(Parser)]

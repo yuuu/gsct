@@ -3,7 +3,7 @@ use std::path::{Path, PathBuf};
 
 use anyhow::Result;
 
-use crate::git;
+use crate::{cache, git};
 
 /// ファイルが属するグループ（表示順に並べている）
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]

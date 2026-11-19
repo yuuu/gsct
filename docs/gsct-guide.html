@@ -508,7 +508,7 @@ rustfmt
 <p>Step 1 でできた <code>mise.toml</code> を次の内容にします。</p>
 <div class="sourceCode" id="cb8"><pre
 class="sourceCode toml"><code class="sourceCode toml"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="kw">[tools]</span></span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="dt">rust</span> <span class="op">=</span> <span class="st">&quot;1.98.1&quot;</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="dt">rust</span> <span class="op">=</span> <span class="op">{ </span><span class="dt">version</span><span class="op"> =</span> <span class="st">&quot;1.98.1&quot;</span><span class="op">, </span><span class="dt">components</span><span class="op"> =</span> <span class="st">&quot;rustfmt,clippy&quot;</span><span class="op"> }</span></span>
 <span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a><span class="kw">[tasks.fmt]</span></span>
 <span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a><span class="dt">description</span> <span class="op">=</span> <span class="st">&quot;フォーマットを確認する&quot;</span></span>
@@ -526,6 +526,12 @@ class="sourceCode toml"><code class="sourceCode toml"><span id="cb8-1"><a href="
 <span id="cb8-17"><a href="#cb8-17" aria-hidden="true" tabindex="-1"></a><span class="dt">description</span> <span class="op">=</span> <span class="st">&quot;CI と同じチェックをまとめて実行する&quot;</span></span>
 <span id="cb8-18"><a href="#cb8-18" aria-hidden="true" tabindex="-1"></a><span class="dt">depends</span> <span class="op">=</span> <span class="op">[</span><span class="st">&quot;fmt&quot;</span><span class="op">,</span> <span class="st">&quot;lint&quot;</span><span class="op">,</span> <span class="st">&quot;test&quot;</span><span class="op">]</span></span></code></pre></div>
 <ul>
+<li><code>components</code> で rustfmt と clippy
+を明示します。CI（mise-action）では Rust
+が最小構成でインストールされ、指定しないと <code>cargo fmt</code> と
+<code>cargo clippy</code> が
+<code>'cargo-fmt' is not installed for the toolchain</code>
+のエラーで失敗します。</li>
 <li><code>--all-targets</code> を付けると、テストコードも clippy
 の対象になります。</li>
 <li><code>-D warnings</code>

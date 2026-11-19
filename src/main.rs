@@ -1,4 +1,5 @@
-use std::path::PathBuf;
+use std::env;
+use std::path::{Path, PathBuf};
 use std::process;
 
 use anyhow::Result;
@@ -9,6 +10,7 @@ mod cache;
 mod exec;
 mod expand;
 mod git;
+mod links;
 mod status;
 
 /// scm_breeze 風の git status shortcuts と git alias
@@ -58,7 +60,7 @@ fn main() {
 }
 
 fn run() -> Result<i32> {
-    let cli = Cli::parse();
+    let cli = Cli::parse_from(args_with_alias_name(env::args().collect()));
     let code = match cli.command {
         Command::Status => {
             status::run()?;
@@ -70,12 +72,29 @@ fn run() -> Result<i32> {
             0
         }
         Command::InstallLinks { dir, force, skip } => {
-            println!("TODO: install-links {dir:?} force={force} skip={skip:?}");
+            links::install(&dir, force, &skip)?;
             0
         }
         Command::Alias(args) => aliases::run(&args)?,
     };
     Ok(code)
+}
+
+/// `gd 1` のようにシンボリックリンク経由で呼ばれたら、`gsct gd 1` として扱う
+fn args_with_alias_name(mut args: Vec<String>) -> Vec<String> {
+    let program = args
+        .first()
+        .and_then(|arg| Path::new(arg).file_name())
+        .and_then(|name| name.to_str())
+        .unwrap_or("gsct")
+        .to_string();
+
+    if program != "gsct" {
+        args[0] = program;
+        args.insert(0, "gsct".to_string());
+    }
+
+    args
 }
 
 #[cfg(test)]
@@ -124,5 +143,22 @@ mod tests {
     #[test]
     fn exec_requires_arguments() {
         assert!(Cli::try_parse_from(["gsct", "exec"]).is_err());
+    }
+
+    /// テスト用に &str の配列を Vec<String> に変換する
+    fn strings(items: &[&str]) -> Vec<String> {
+        items.iter().map(|s| s.to_string()).collect()
+    }
+
+    #[test]
+    fn keeps_args_when_called_as_gsct() {
+        let args = strings(&["/home/me/.cargo/bin/gsct", "status"]);
+        assert_eq!(args_with_alias_name(args.clone()), args);
+    }
+
+    #[test]
+    fn treats_alias_link_name_as_subcommand() {
+        let args = strings(&["/home/me/.local/bin/gd", "1"]);
+        assert_eq!(args_with_alias_name(args), ["gsct", "gd", "1"]);
     }
 }

@@ -3,7 +3,7 @@ use std::path::{Path, PathBuf};
 
 use anyhow::Result;
 
-use crate::git;
+use crate::{cache, git};
 
 /// ファイルが属するグループ（表示順に並べている）
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -242,8 +242,10 @@ pub fn run() -> Result<()> {
 
     let cwd = std::env::current_dir()?;
     let color = std::io::stdout().is_terminal();
-    let (text, _files) = render(&status, &root, &cwd, color);
+    let (text, files) = render(&status, &root, &cwd, color);
     print!("{text}");
+
+    cache::save(&files)?;
 
     Ok(())
 }

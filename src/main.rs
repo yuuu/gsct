@@ -4,6 +4,7 @@ use std::process;
 use anyhow::Result;
 use clap::{Parser, Subcommand};
 
+mod cache;
 mod git;
 mod status;
 

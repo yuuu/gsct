@@ -6,6 +6,7 @@ use clap::{Parser, Subcommand};
 
 mod git;
 mod status;
+use crate::{cache, git};
 
 /// scm_breeze 風の git status shortcuts と git alias
 #[derive(Parser)]

@@ -242,8 +242,10 @@ pub fn run() -> Result<()> {
 
     let cwd = std::env::current_dir()?;
     let color = std::io::stdout().is_terminal();
-    let (text, _files) = render(&status, &root, &cwd, color);
+    let (text, files) = render(&status, &root, &cwd, color);
     print!("{text}");
+
+    cache::save(&files)?;
 
     Ok(())
 }

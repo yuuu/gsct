@@ -58,9 +58,11 @@ pub fn install(dir: &Path, force: bool, skip: &[String]) -> Result<()> {
     Ok(())
 }
 
-/// path_var（PATH の値）から name という名前のコマンドを探す（exclude のディレクトリは除く）
 fn find_in_path(name: &str, path_var: &OsStr, exclude: &Path) -> Option<PathBuf> {
-    todo!()
+    env::split_paths(path_var)
+        .filter(|dir| dir != exclude)
+        .map(|dir| dir.join(name))
+        .find(|candidate| candidate.is_file())
 }
 
 #[cfg(test)]

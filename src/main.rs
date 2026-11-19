@@ -51,8 +51,6 @@ enum Command {
 
 fn main() {
     match run() {
-        let cli = Cli::parse_from(args_with_alias_name(env::args().collect()));
-
         Ok(code) => process::exit(code),
         Err(err) => {
             eprintln!("gsct: {err:#}");
@@ -62,7 +60,7 @@ fn main() {
 }
 
 fn run() -> Result<i32> {
-    let cli = Cli::parse();
+    let cli = Cli::parse_from(args_with_alias_name(env::args().collect()));
     let code = match cli.command {
         Command::Status => {
             status::run()?;
@@ -74,7 +72,7 @@ fn run() -> Result<i32> {
             0
         }
         Command::InstallLinks { dir, force, skip } => {
-            println!("TODO: install-links {dir:?} force={force} skip={skip:?}");
+            links::install(&dir, force, &skip)?;
             0
         }
         Command::Alias(args) => aliases::run(&args)?,
@@ -83,8 +81,20 @@ fn run() -> Result<i32> {
 }
 
 /// `gd 1` のようにシンボリックリンク経由で呼ばれたら、`gsct gd 1` として扱う
-fn args_with_alias_name(args: Vec<String>) -> Vec<String> {
-    todo!()
+fn args_with_alias_name(mut args: Vec<String>) -> Vec<String> {
+    let program = args
+        .first()
+        .and_then(|arg| Path::new(arg).file_name())
+        .and_then(|name| name.to_str())
+        .unwrap_or("gsct")
+        .to_string();
+
+    if program != "gsct" {
+        args[0] = program;
+        args.insert(0, "gsct".to_string());
+    }
+
+    args
 }
 
 #[cfg(test)]

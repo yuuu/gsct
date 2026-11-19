@@ -2,17 +2,17 @@ use anyhow::{Context, Result};
 
 use crate::{exec, expand, status};
 
-/// git の alias 1つ分の定義
+/// Definition of a single git alias
 pub struct Alias {
-    /// alias 名（例: "gd"）
+    /// Alias name (e.g. "gd")
     pub name: &'static str,
-    /// git に渡す引数（例: ["diff"]）
+    /// Arguments passed to git (e.g. ["diff"])
     pub args: &'static [&'static str],
-    /// 番号の引数をファイルパスに展開するか
+    /// Whether numeric arguments are expanded to file paths
     pub expand: bool,
 }
 
-/// 番号を展開する alias（ファイルを扱うコマンド）を作る
+/// Creates an alias that expands numbers (for commands that take files)
 const fn with_numbers(name: &'static str, args: &'static [&'static str]) -> Alias {
     Alias {
         name,
@@ -21,7 +21,7 @@ const fn with_numbers(name: &'static str, args: &'static [&'static str]) -> Alia
     }
 }
 
-/// 番号を展開しない alias を作る
+/// Creates an alias that does not expand numbers
 const fn plain(name: &'static str, args: &'static [&'static str]) -> Alias {
     Alias {
         name,
@@ -33,12 +33,12 @@ const fn plain(name: &'static str, args: &'static [&'static str]) -> Alias {
 const LOG_FORMAT: &str =
     "--pretty=format:%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset";
 
-/// gsct 自身の機能を呼び出す特別な alias
+/// Special aliases that call gsct's own features
 pub const SPECIAL: [(&str, &str); 2] = [("gs", "gsct status"), ("ge", "gsct exec")];
 
-/// scm_breeze の git_aliases を元にした alias の一覧
+/// Aliases based on scm_breeze's git_aliases
 pub const ALIASES: &[Alias] = &[
-    // ファイルを扱うコマンド（番号を使える）
+    // Commands that take files (numbers can be used)
     with_numbers("ga", &["add"]),
     with_numbers("gap", &["add", "-p"]),
     with_numbers("gau", &["add", "-u"]),
@@ -57,7 +57,7 @@ pub const ALIASES: &[Alias] = &[
     with_numbers("gdc", &["diff", "--cached"]),
     with_numbers("gdt", &["difftool"]),
     with_numbers("gmt", &["mergetool"]),
-    // その他のコマンド
+    // Other commands
     plain("gaa", &["add", "--all", "."]),
     plain("gcb", &["checkout", "-b"]),
     plain("gcm", &["commit", "--amend"]),
@@ -118,14 +118,14 @@ pub const ALIASES: &[Alias] = &[
     plain("gsw", &["switch"]),
 ];
 
-/// 名前から alias を探す
+/// Finds an alias by name
 fn find(name: &str) -> Option<&'static Alias> {
     ALIASES.iter().find(|alias| alias.name == name)
 }
 
-/// alias を実行する。args[0] が alias 名、残りが追加の引数
+/// Runs an alias. args[0] is the alias name and the rest are extra arguments
 pub fn run(args: &[String]) -> Result<i32> {
-    let (name, rest) = args.split_first().context("alias 名を指定してください")?;
+    let (name, rest) = args.split_first().context("specify an alias name")?;
 
     match name.as_str() {
         "gs" => {
@@ -134,7 +134,7 @@ pub fn run(args: &[String]) -> Result<i32> {
         }
         "ge" => exec::run(rest),
         _ => {
-            let alias = find(name).with_context(|| format!("不明な alias です: {name}"))?;
+            let alias = find(name).with_context(|| format!("unknown alias: {name}"))?;
 
             let rest = if alias.expand {
                 expand::expand_with_cache(rest)?
@@ -149,14 +149,14 @@ pub fn run(args: &[String]) -> Result<i32> {
     }
 }
 
-/// alias の一覧を表示する（scm_breeze の git_aliases 相当）
+/// Prints the list of aliases (like scm_breeze's git_aliases)
 pub fn print_list() {
     for (name, command) in SPECIAL {
         println!("{name:>6}  =>  {command}");
     }
 
     for alias in ALIASES {
-        // 空白を含む引数は見やすいように引用符で囲む
+        // Quote arguments that contain spaces for readability
         let args: Vec<String> = alias
             .args
             .iter()
@@ -168,7 +168,7 @@ pub fn print_list() {
                 }
             })
             .collect();
-        let mark = if alias.expand { "  (番号可)" } else { "" };
+        let mark = if alias.expand { "  (numbers)" } else { "" };
         println!("{:>6}  =>  git {}{mark}", alias.name, args.join(" "));
     }
 }
@@ -185,7 +185,7 @@ mod tests {
         let count = names.len();
         names.sort();
         names.dedup();
-        assert_eq!(names.len(), count, "alias 名が重複しています");
+        assert_eq!(names.len(), count, "duplicate alias names");
     }
 
     #[test]

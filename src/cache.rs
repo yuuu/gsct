@@ -5,36 +5,35 @@ use anyhow::{Context, Result};
 
 use crate::git;
 
-/// キャッシュファイルの場所（通常は .git/gsct-status）
+/// Location of the cache file (usually .git/gsct-status)
 fn cache_path() -> Result<PathBuf> {
     let path = git::output(&["rev-parse", "--git-path", "gsct-status"])?;
     Ok(PathBuf::from(path.trim()))
 }
 
-/// 番号順のファイル一覧をキャッシュに保存する
+/// Saves the numbered list of files to the cache
 pub fn save(files: &[PathBuf]) -> Result<()> {
     write_to(&cache_path()?, files)
 }
 
-/// ファイル一覧を NUL 区切りで path に書き込む
+/// Writes the list of files to path, separated by NUL
 fn write_to(path: &Path, files: &[PathBuf]) -> Result<()> {
     let content = files
         .iter()
         .map(|file| file.to_string_lossy())
         .collect::<Vec<_>>()
         .join("\0");
-    fs::write(path, content).with_context(|| format!("{} に書き込めませんでした", path.display()))
+    fs::write(path, content).with_context(|| format!("failed to write {}", path.display()))
 }
 
-/// キャッシュからファイル一覧を読み込む
+/// Loads the list of files from the cache
 pub fn load() -> Result<Vec<String>> {
     read_from(&cache_path()?)
 }
 
-/// path から NUL 区切りのファイル一覧を読み込む
+/// Reads a NUL-separated list of files from path
 fn read_from(path: &Path) -> Result<Vec<String>> {
-    let content = fs::read_to_string(path)
-        .context("番号とファイルの対応が見つかりません。先に gs を実行してください")?;
+    let content = fs::read_to_string(path).context("no numbered files found; run gs first")?;
     Ok(content
         .split('\0')
         .filter(|file| !file.is_empty())

@@ -1,7 +1,7 @@
 name: Release
 
-# v で始まるタグを push すると、各プラットフォーム向けのバイナリをビルドして GitHub Release に公開する。
-# このファイルを変える PR では、ビルドだけを行って公開はしない（ワークフローの動作確認用）。
+# Pushing a tag that starts with v builds binaries for each platform and publishes them to a GitHub Release.
+# Pull requests that change this file only build (to check the workflow) and do not publish.
 on:
   push:
     tags: ["v*"]
@@ -14,12 +14,12 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          # Linux は musl で静的リンクし、glibc のバージョンに依存しないバイナリにする
+          # Link statically against musl on Linux so the binary does not depend on the glibc version
           - target: x86_64-unknown-linux-musl
             os: ubuntu-latest
           - target: aarch64-unknown-linux-musl
             os: ubuntu-24.04-arm
-          # macOS は Apple Silicon のランナーで両方をビルドする（Intel 向けはクロスコンパイル）
+          # Build both macOS targets on an Apple Silicon runner (Intel is cross-compiled)
           - target: x86_64-apple-darwin
             os: macos-latest
           - target: aarch64-apple-darwin
@@ -37,7 +37,7 @@ jobs:
       - run: cargo build --release --locked --target ${{ matrix.target }}
       - name: Package
         run: |
-          # MIT ライセンスの条件に従い、LICENSE も同梱する
+          # Include LICENSE as required by the MIT license
           archive=gsct-${{ matrix.target }}.tar.gz
           tar czf "$archive" -C target/${{ matrix.target }}/release gsct -C "$GITHUB_WORKSPACE" LICENSE
           shasum -a 256 "$archive" > "$archive.sha256"
@@ -59,7 +59,7 @@ jobs:
         run: |
           version=$(sed -n 's/^version = "\(.*\)"/\1/p' Cargo.toml | head -1)
           if [ "${GITHUB_REF_NAME}" != "v${version}" ]; then
-            echo "::error::タグ ${GITHUB_REF_NAME} が Cargo.toml の version (${version}) と一致しません"
+            echo "::error::tag ${GITHUB_REF_NAME} does not match the version in Cargo.toml (${version})"
             exit 1
           fi
       - uses: actions/download-artifact@v8

@@ -2,9 +2,9 @@ use anyhow::Result;
 
 use crate::cache;
 
-/// "3" → Some((3, 3))、"2-4" → Some((2, 4))、それ以外 → None
+/// "3" → Some((3, 3)), "2-4" → Some((2, 4)), anything else → None
 fn parse_range(arg: &str) -> Option<(usize, usize)> {
-    // 数字とハイフン以外が含まれていたら番号ではない
+    // Anything other than digits and hyphens is not a number
     if arg.is_empty() || !arg.chars().all(|c| c.is_ascii_digit() || c == '-') {
         return None;
     }
@@ -27,19 +27,19 @@ fn parse_range(arg: &str) -> Option<(usize, usize)> {
 }
 
 /// "1,3-4" → Some(vec![(1, 1), (3, 4)])
-/// カンマで区切った各部分を parse_range で読み、1つでも番号でなければ None
+/// Parses each comma-separated part with parse_range; None if any part is not a number
 fn parse_ranges(arg: &str) -> Option<Vec<(usize, usize)>> {
     arg.split(',').map(parse_range).collect()
 }
 
-/// 番号の引数をファイルパスに置き換える
-/// 範囲外の番号や番号でない引数は、そのまま残す
+/// Replaces numeric arguments with file paths
+/// Out-of-range numbers and non-numeric arguments are kept as they are
 pub fn expand(args: &[String], files: &[String]) -> Vec<String> {
     let mut result = Vec::new();
 
     for arg in args {
         match parse_ranges(arg) {
-            // すべての範囲がファイル数に収まるときだけ展開する
+            // Expand only when every range fits within the number of files
             Some(ranges)
                 if ranges
                     .iter()
@@ -56,7 +56,7 @@ pub fn expand(args: &[String], files: &[String]) -> Vec<String> {
     result
 }
 
-/// 番号の引数があればキャッシュを読み込んで展開する
+/// Loads the cache and expands the arguments if any of them is a number
 pub fn expand_with_cache(args: &[String]) -> Result<Vec<String>> {
     let has_number = args.iter().any(|arg| parse_ranges(arg).is_some());
     if !has_number {
@@ -71,7 +71,7 @@ pub fn expand_with_cache(args: &[String]) -> Result<Vec<String>> {
 mod tests {
     use super::*;
 
-    /// テスト用に &str の配列を Vec<String> に変換する
+    /// Converts an array of &str into Vec<String> for tests
     fn strings(items: &[&str]) -> Vec<String> {
         items.iter().map(|s| s.to_string()).collect()
     }

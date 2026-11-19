@@ -1,3 +1,5 @@
+use std::path::{Path, PathBuf};
+
 /// ファイルが属するグループ（表示順に並べている）
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Group {
@@ -162,6 +164,10 @@ fn classify(x: char, y: char, path: &str) -> Vec<Entry> {
     entries
 }
 
+pub fn render(status: &Status, root: &Path, cwd: &Path, color: bool) -> (String, Vec<PathBuf>) {
+    todo!()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -214,6 +220,33 @@ mod tests {
             vec![
                 Entry::new(Group::Staged, Kind::Renamed, "new.rs"),
                 Entry::new(Group::Untracked, Kind::Untracked, "a.txt"),
+            ]
+        );
+    }
+
+    #[test]
+    fn renders_numbered_files_relative_to_cwd() {
+        let status = parse("## main [ahead 1]\0M  src/main.rs\0?? memo.txt\0");
+        let (text, files) = render(&status, Path::new("/repo"), Path::new("/repo/src"), false);
+
+        let expected = "\
+# On branch: main  |  +1
+#
+➤ Changes to be committed
+#
+#        modified: [1] main.rs
+#
+➤ Untracked files
+#
+#       untracked: [2] ../memo.txt
+#
+";
+        assert_eq!(text, expected);
+        assert_eq!(
+            files,
+            vec![
+                PathBuf::from("/repo/src/main.rs"),
+                PathBuf::from("/repo/memo.txt")
             ]
         );
     }

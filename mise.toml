@@ -1,2 +1,18 @@
 [tools]
 rust = "1.98.1"
+
+[tasks.fmt]
+description = "フォーマットを確認する"
+run = "cargo fmt --check"
+
+[tasks.lint]
+description = "clippy で静的解析する（警告もエラー扱い）"
+run = "cargo clippy --all-targets -- -D warnings"
+
+[tasks.test]
+description = "テストを実行する"
+run = "cargo test"
+
+[tasks.ci]
+description = "CI と同じチェックをまとめて実行する"
+depends = ["fmt", "lint", "test"]

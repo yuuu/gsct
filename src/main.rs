@@ -4,6 +4,9 @@ use std::process;
 use anyhow::Result;
 use clap::{Parser, Subcommand};
 
+mod git;
+mod status;
+
 /// scm_breeze 風の git status shortcuts と git alias
 #[derive(Parser)]
 #[command(version, about)]
@@ -53,7 +56,10 @@ fn main() {
 fn run() -> Result<i32> {
     let cli = Cli::parse();
     match cli.command {
-        Command::Status => println!("TODO: status"),
+        Command::Status => {
+            let output = git::output(&["status", "--porcelain", "-b", "-z"])?;
+            println!("{:#?}", status::parse(&output));
+        }
         Command::Exec { args } => println!("TODO: exec {args:?}"),
         Command::Aliases => println!("TODO: aliases"),
         Command::InstallLinks { dir, force, skip } => {

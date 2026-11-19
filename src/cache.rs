@@ -26,6 +26,16 @@ fn write_to(path: &Path, files: &[PathBuf]) -> Result<()> {
     fs::write(path, content).with_context(|| format!("{} に書き込めませんでした", path.display()))
 }
 
+/// キャッシュからファイル一覧を読み込む
+pub fn load() -> Result<Vec<String>> {
+    read_from(&cache_path()?)
+}
+
+/// path から NUL 区切りのファイル一覧を読み込む
+fn read_from(path: &Path) -> Result<Vec<String>> {
+    todo!()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -42,5 +52,22 @@ mod tests {
             fs::read_to_string(&path).unwrap(),
             "/repo/a.rs\0/repo/b c.rs"
         );
+    }
+
+    #[test]
+    fn reads_back_written_files() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().join("gsct-status");
+        let files = [PathBuf::from("/repo/a.rs"), PathBuf::from("/repo/b c.rs")];
+
+        write_to(&path, &files).unwrap();
+
+        assert_eq!(read_from(&path).unwrap(), ["/repo/a.rs", "/repo/b c.rs"]);
+    }
+
+    #[test]
+    fn missing_cache_is_an_error() {
+        let dir = tempfile::tempdir().unwrap();
+        assert!(read_from(&dir.path().join("gsct-status")).is_err());
     }
 }

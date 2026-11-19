@@ -120,7 +120,7 @@ pub const ALIASES: &[Alias] = &[
 
 /// 名前から alias を探す
 fn find(name: &str) -> Option<&'static Alias> {
-    todo!()
+    ALIASES.iter().find(|alias| alias.name == name)
 }
 
 /// alias を実行する。args[0] が alias 名、残りが追加の引数

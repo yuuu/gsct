@@ -4,6 +4,7 @@ use std::process;
 use anyhow::Result;
 use clap::{Parser, Subcommand};
 
+mod aliases;
 mod cache;
 mod exec;
 mod expand;
@@ -65,17 +66,14 @@ fn run() -> Result<i32> {
         }
         Command::Exec { args } => exec::run(&args)?,
         Command::Aliases => {
-            println!("TODO: aliases");
+            aliases::print_list();
             0
         }
         Command::InstallLinks { dir, force, skip } => {
             println!("TODO: install-links {dir:?} force={force} skip={skip:?}");
             0
         }
-        Command::Alias(args) => {
-            println!("TODO: alias {args:?}");
-            0
-        }
+        Command::Alias(args) => aliases::run(&args)?,
     };
     Ok(code)
 }

@@ -94,6 +94,14 @@ code span.at, code span.pp { color: var(--at); }
 code span.bu, code span.ex { color: var(--ty); }
 code span.va { color: #ffd580; }
 code span.op { color: inherit; }
+.code-with-file { margin: 0 0 1.4em; }
+.code-with-file .code-wrap { margin: 0; }
+.code-with-file pre { border-top-left-radius: 0; }
+.code-file { line-height: 1; }
+.code-file-name {
+  display: inline-block; background: #34363f; color: #e8e8e8; padding: 7px 14px 6px;
+  border-radius: 6px 6px 0 0; font-family: "JetBrains Mono", "SFMono-Regular", Menlo, Consolas, monospace; font-size: 12.5px;
+}
 table { border-collapse: collapse; width: 100%; margin: 0 0 1.6em; font-size: 14px; display: block; overflow-x: auto; }
 th, td { border: 1px solid var(--border); padding: 8px 12px; text-align: left; vertical-align: top; }
 thead th { background: var(--accent-soft); white-space: nowrap; }
@@ -491,9 +499,12 @@ class="sourceCode bash"><code class="sourceCode bash"><span id="cb6-1"><a href="
 <h3 id="手順-1フォーマッタの設定を置く">手順
 1：フォーマッタの設定を置く</h3>
 <p>プロジェクト直下に <code>rustfmt.toml</code> を作ります。</p>
+<div class="code-with-file">
+<div class="code-file"><span class="code-file-name">rustfmt.toml</span></div>
 <div class="sourceCode" id="cb7"><pre
 class="sourceCode toml"><code class="sourceCode toml"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Rust 2024 のフォーマットスタイルを使う</span></span>
 <span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a><span class="dt">style_edition</span> <span class="op">=</span> <span class="st">&quot;2024&quot;</span></span></code></pre></div>
+</div>
 <p>rustfmt
 は設定がなくても動きます。ただしファイルを置いておくと、「このリポジトリは
 rustfmt
@@ -506,6 +517,8 @@ rustfmt
 <h3 id="手順-2mise-にチェック用のタスクを登録する">手順 2：mise
 にチェック用のタスクを登録する</h3>
 <p>Step 1 でできた <code>mise.toml</code> を次の内容にします。</p>
+<div class="code-with-file">
+<div class="code-file"><span class="code-file-name">mise.toml</span></div>
 <div class="sourceCode" id="cb8"><pre
 class="sourceCode toml"><code class="sourceCode toml"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="kw">[tools]</span></span>
 <span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="dt">rust</span> <span class="op">=</span> <span class="op">{ </span><span class="dt">version</span><span class="op"> =</span> <span class="st">&quot;1.98.1&quot;</span><span class="op">, </span><span class="dt">components</span><span class="op"> =</span> <span class="st">&quot;rustfmt,clippy&quot;</span><span class="op"> }</span></span>
@@ -525,6 +538,7 @@ class="sourceCode toml"><code class="sourceCode toml"><span id="cb8-1"><a href="
 <span id="cb8-16"><a href="#cb8-16" aria-hidden="true" tabindex="-1"></a><span class="kw">[tasks.ci]</span></span>
 <span id="cb8-17"><a href="#cb8-17" aria-hidden="true" tabindex="-1"></a><span class="dt">description</span> <span class="op">=</span> <span class="st">&quot;CI と同じチェックをまとめて実行する&quot;</span></span>
 <span id="cb8-18"><a href="#cb8-18" aria-hidden="true" tabindex="-1"></a><span class="dt">depends</span> <span class="op">=</span> <span class="op">[</span><span class="st">&quot;fmt&quot;</span><span class="op">,</span> <span class="st">&quot;lint&quot;</span><span class="op">,</span> <span class="st">&quot;test&quot;</span><span class="op">]</span></span></code></pre></div>
+</div>
 <ul>
 <li><code>components</code> で rustfmt と clippy
 を明示します。CI（mise-action）では Rust
@@ -553,6 +567,8 @@ class="sourceCode bash"><code class="sourceCode bash"><span id="cb10-1"><a href=
 <h3 id="手順-3github-actions-のワークフローを作る">手順 3：GitHub
 Actions のワークフローを作る</h3>
 <p><code>.github/workflows/ci.yml</code> を作ります。</p>
+<div class="code-with-file">
+<div class="code-file"><span class="code-file-name">.github/workflows/ci.yml</span></div>
 <div class="sourceCode" id="cb11"><pre
 class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">name</span><span class="kw">:</span><span class="at"> CI</span></span>
 <span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a></span>
@@ -569,6 +585,7 @@ class="sourceCode yaml"><code class="sourceCode yaml"><span id="cb11-1"><a href=
 <span id="cb11-13"><a href="#cb11-13" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="kw">-</span><span class="at"> </span><span class="fu">uses</span><span class="kw">:</span><span class="at"> jdx/mise-action@v5</span></span>
 <span id="cb11-14"><a href="#cb11-14" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="kw">-</span><span class="at"> </span><span class="fu">uses</span><span class="kw">:</span><span class="at"> Swatinem/rust-cache@v2</span></span>
 <span id="cb11-15"><a href="#cb11-15" aria-hidden="true" tabindex="-1"></a><span class="at">      </span><span class="kw">-</span><span class="at"> </span><span class="fu">run</span><span class="kw">:</span><span class="at"> mise run ci</span></span></code></pre></div>
+</div>
 <ul>
 <li><code>jdx/mise-action</code> が <code>mise.toml</code>
 を読み、手元と同じ Rust 1.98.1 を入れます。</li>
@@ -646,6 +663,8 @@ class="sourceCode bash"><code class="sourceCode bash"><span id="cb15-1"><a href=
 <span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="ex">cargo</span> add anyhow</span></code></pre></div>
 <p><code>src/main.rs</code> の末尾（<code>fn main</code>
 の後ろ）に、テストだけを追加します。</p>
+<div class="code-with-file">
+<div class="code-file"><span class="code-file-name">src/main.rs</span></div>
 <div class="sourceCode" id="cb16"><pre
 class="sourceCode rust"><code class="sourceCode rust"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="at">#[</span>cfg<span class="at">(</span>test<span class="at">)]</span></span>
 <span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a><span class="kw">mod</span> tests <span class="op">{</span></span>
@@ -690,6 +709,7 @@ class="sourceCode rust"><code class="sourceCode rust"><span id="cb16-1"><a href=
 <span id="cb16-41"><a href="#cb16-41" aria-hidden="true" tabindex="-1"></a>        <span class="pp">assert_eq!</span>(skip<span class="op">,</span> [<span class="st">&quot;gs&quot;</span><span class="op">,</span> <span class="st">&quot;gm&quot;</span>])<span class="op">;</span></span>
 <span id="cb16-42"><a href="#cb16-42" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
 <span id="cb16-43"><a href="#cb16-43" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+</div>
 <ul>
 <li><code>#[cfg(test)]</code> が付いたモジュールは
 <code>cargo test</code>
@@ -716,6 +736,8 @@ class="sourceCode bash"><code class="sourceCode bash"><span id="cb18-1"><a href=
 <p><code>src/main.rs</code> の <code>fn main() { ... }</code>
 を消し、代わりに次のコードをファイルの先頭に置きます（<code>#[cfg(test)]</code>
 以降はそのまま）。</p>
+<div class="code-with-file">
+<div class="code-file"><span class="code-file-name">src/main.rs</span></div>
 <div class="sourceCode" id="cb19"><pre
 class="sourceCode rust"><code class="sourceCode rust"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="kw">use</span> <span class="pp">std::path::</span><span class="dt">PathBuf</span><span class="op">;</span></span>
 <span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a><span class="kw">use</span> <span class="pp">std::</span>process<span class="op">;</span></span>
@@ -782,6 +804,7 @@ class="sourceCode rust"><code class="sourceCode rust"><span id="cb19-1"><a href=
 <span id="cb19-63"><a href="#cb19-63" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
 <span id="cb19-64"><a href="#cb19-64" aria-hidden="true" tabindex="-1"></a>    <span class="cn">Ok</span>(<span class="dv">0</span>)</span>
 <span id="cb19-65"><a href="#cb19-65" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+</div>
 <p><strong>コードの読み方</strong></p>
 <ul>
 <li><code>use</code>
@@ -887,6 +910,8 @@ class="sourceCode bash"><code class="sourceCode bash"><span id="cb23-1"><a href=
 <p><strong><code>src/git.rs</code></strong>（新規）：git
 を実行して標準出力を受け取る小さな関数です。外部コマンドを呼ぶだけなので、ここにはユニットテストを書きません（Step
 8 の E2E テストで確かめます）。</p>
+<div class="code-with-file">
+<div class="code-file"><span class="code-file-name">src/git.rs</span></div>
 <div class="sourceCode" id="cb25"><pre
 class="sourceCode rust"><code class="sourceCode rust"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="kw">use</span> <span class="pp">std::process::</span>Command<span class="op">;</span></span>
 <span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a></span>
@@ -906,6 +931,7 @@ class="sourceCode rust"><code class="sourceCode rust"><span id="cb25-1"><a href=
 <span id="cb25-16"><a href="#cb25-16" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb25-17"><a href="#cb25-17" aria-hidden="true" tabindex="-1"></a>    <span class="cn">Ok</span>(<span class="dt">String</span><span class="pp">::</span>from_utf8_lossy(<span class="op">&amp;</span>out<span class="op">.</span>stdout)<span class="op">.</span>into_owned())</span>
 <span id="cb25-18"><a href="#cb25-18" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+</div>
 <ul>
 <li><code>&amp;[&amp;str]</code> は <code>&amp;["status", "-z"]</code>
 のような配列を借りて受け取る型です（<a
@@ -919,6 +945,8 @@ href="https://doc.rust-jp.rs/book-ja/ch04-03-slices.html">4.3
 <p><strong><code>src/status.rs</code></strong>（新規）：データの型と、中身が
 <code>todo!()</code> の <code>parse</code>
 関数、そしてテストを書きます。</p>
+<div class="code-with-file">
+<div class="code-file"><span class="code-file-name">src/status.rs</span></div>
 <div class="sourceCode" id="cb26"><pre
 class="sourceCode rust"><code class="sourceCode rust"><span id="cb26-1"><a href="#cb26-1" aria-hidden="true" tabindex="-1"></a><span class="co">/// ファイルが属するグループ（表示順に並べている）</span></span>
 <span id="cb26-2"><a href="#cb26-2" aria-hidden="true" tabindex="-1"></a><span class="at">#[</span>derive<span class="at">(</span><span class="bu">Debug</span><span class="op">,</span> <span class="bu">Clone</span><span class="op">,</span> <span class="bu">Copy</span><span class="op">,</span> <span class="bu">PartialEq</span><span class="op">,</span> <span class="bu">Eq</span><span class="at">)]</span></span>
@@ -1036,6 +1064,7 @@ class="sourceCode rust"><code class="sourceCode rust"><span id="cb26-1"><a href=
 <span id="cb26-114"><a href="#cb26-114" aria-hidden="true" tabindex="-1"></a>        )<span class="op">;</span></span>
 <span id="cb26-115"><a href="#cb26-115" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
 <span id="cb26-116"><a href="#cb26-116" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+</div>
 <ul>
 <li><code>#[derive(Debug, Clone, Copy, PartialEq, Eq)]</code>
 は標準的な機能を自動で実装させる指示です。<code>Debug</code> は
@@ -1051,14 +1080,20 @@ href="https://doc.rust-jp.rs/book-ja/ch10-02-traits.html">10.2
 </ul>
 <p><strong><code>src/main.rs</code></strong>：先頭にモジュールを追加し、<code>Command::Status</code>
 の行を変えて解析結果をそのまま表示させます。</p>
+<div class="code-with-file">
+<div class="code-file"><span class="code-file-name">src/main.rs</span></div>
 <div class="sourceCode" id="cb27"><pre
 class="sourceCode rust"><code class="sourceCode rust"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="kw">mod</span> git<span class="op">;</span></span>
 <span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a><span class="kw">mod</span> status<span class="op">;</span></span></code></pre></div>
+</div>
+<div class="code-with-file">
+<div class="code-file"><span class="code-file-name">src/main.rs</span></div>
 <div class="sourceCode" id="cb28"><pre
 class="sourceCode rust"><code class="sourceCode rust"><span id="cb28-1"><a href="#cb28-1" aria-hidden="true" tabindex="-1"></a>        <span class="pp">Command::</span>Status <span class="op">=&gt;</span> <span class="op">{</span></span>
 <span id="cb28-2"><a href="#cb28-2" aria-hidden="true" tabindex="-1"></a>            <span class="kw">let</span> output <span class="op">=</span> <span class="pp">git::</span>output(<span class="op">&amp;</span>[<span class="st">&quot;status&quot;</span><span class="op">,</span> <span class="st">&quot;--porcelain&quot;</span><span class="op">,</span> <span class="st">&quot;-b&quot;</span><span class="op">,</span> <span class="st">&quot;-z&quot;</span>])<span class="op">?;</span></span>
 <span id="cb28-3"><a href="#cb28-3" aria-hidden="true" tabindex="-1"></a>            <span class="pp">println!</span>(<span class="st">&quot;{:#?}&quot;</span><span class="op">,</span> <span class="pp">status::</span>parse(<span class="op">&amp;</span>output))<span class="op">;</span></span>
 <span id="cb28-4"><a href="#cb28-4" aria-hidden="true" tabindex="-1"></a>        <span class="op">}</span></span></code></pre></div>
+</div>
 <div class="sourceCode" id="cb29"><pre
 class="sourceCode bash"><code class="sourceCode bash"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="ex">cargo</span> test</span></code></pre></div>
 <p>今度はコンパイルは通り、新しいテスト5件が
@@ -1072,6 +1107,8 @@ class="sourceCode bash"><code class="sourceCode bash"><span id="cb30-1"><a href=
 <p><code>src/status.rs</code> の <code>parse</code>
 を次のコードで置き換えます。<code>parse_branch</code> と
 <code>classify</code> は新しく追加する補助関数です。</p>
+<div class="code-with-file">
+<div class="code-file"><span class="code-file-name">src/status.rs</span></div>
 <div class="sourceCode" id="cb31"><pre
 class="sourceCode rust"><code class="sourceCode rust"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="co">/// `git status --porcelain -b -z` の出力を解析する</span></span>
 <span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a><span class="kw">pub</span> <span class="kw">fn</span> parse(output<span class="op">:</span> <span class="op">&amp;</span><span class="dt">str</span>) <span class="op">-&gt;</span> Status <span class="op">{</span></span>
@@ -1181,6 +1218,7 @@ class="sourceCode rust"><code class="sourceCode rust"><span id="cb31-1"><a href=
 <span id="cb31-106"><a href="#cb31-106" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb31-107"><a href="#cb31-107" aria-hidden="true" tabindex="-1"></a>    entries</span>
 <span id="cb31-108"><a href="#cb31-108" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+</div>
 <p><strong>コードの読み方</strong></p>
 <ul>
 <li><code>Option</code>
@@ -1249,18 +1287,26 @@ class="sourceCode bash"><code class="sourceCode bash"><span id="cb34-1"><a href=
 id="red期待する表示をテストにする">Red：期待する表示をテストにする</h3>
 <p><code>src/status.rs</code> の先頭に <code>use</code>
 を追加します。</p>
+<div class="code-with-file">
+<div class="code-file"><span class="code-file-name">src/status.rs</span></div>
 <div class="sourceCode" id="cb35"><pre
 class="sourceCode rust"><code class="sourceCode rust"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a><span class="kw">use</span> <span class="pp">std::path::</span><span class="op">{</span><span class="dt">Path</span><span class="op">,</span> <span class="dt">PathBuf</span><span class="op">};</span></span></code></pre></div>
+</div>
 <p><code>#[cfg(test)]</code> の直前に、中身が <code>todo!()</code> の
 <code>render</code> を追加します。</p>
+<div class="code-with-file">
+<div class="code-file"><span class="code-file-name">src/status.rs</span></div>
 <div class="sourceCode" id="cb36"><pre
 class="sourceCode rust"><code class="sourceCode rust"><span id="cb36-1"><a href="#cb36-1" aria-hidden="true" tabindex="-1"></a><span class="co">/// 表示用の文字列と、番号順に並べたファイルの絶対パスの一覧を作る</span></span>
 <span id="cb36-2"><a href="#cb36-2" aria-hidden="true" tabindex="-1"></a><span class="kw">pub</span> <span class="kw">fn</span> render(status<span class="op">:</span> <span class="op">&amp;</span>Status<span class="op">,</span> root<span class="op">:</span> <span class="op">&amp;</span><span class="dt">Path</span><span class="op">,</span> cwd<span class="op">:</span> <span class="op">&amp;</span><span class="dt">Path</span><span class="op">,</span> color<span class="op">:</span> <span class="dt">bool</span>) <span class="op">-&gt;</span> (<span class="dt">String</span><span class="op">,</span> <span class="dt">Vec</span><span class="op">&lt;</span><span class="dt">PathBuf</span><span class="op">&gt;</span>) <span class="op">{</span></span>
 <span id="cb36-3"><a href="#cb36-3" aria-hidden="true" tabindex="-1"></a>    <span class="pp">todo!</span>()</span>
 <span id="cb36-4"><a href="#cb36-4" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+</div>
 <p><code>mod tests { ... }</code> の中にテストを追加します。リポジトリが
 <code>/repo</code>、今いるのが <code>/repo/src</code>
 という想定です。</p>
+<div class="code-with-file">
+<div class="code-file"><span class="code-file-name">src/status.rs</span></div>
 <div class="sourceCode" id="cb37"><pre
 class="sourceCode rust"><code class="sourceCode rust"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a>    <span class="at">#[</span>test<span class="at">]</span></span>
 <span id="cb37-2"><a href="#cb37-2" aria-hidden="true" tabindex="-1"></a>    <span class="kw">fn</span> renders_numbered_files_relative_to_cwd() <span class="op">{</span></span>
@@ -1288,6 +1334,7 @@ class="sourceCode rust"><code class="sourceCode rust"><span id="cb37-1"><a href=
 <span id="cb37-24"><a href="#cb37-24" aria-hidden="true" tabindex="-1"></a>            ]</span>
 <span id="cb37-25"><a href="#cb37-25" aria-hidden="true" tabindex="-1"></a>        )<span class="op">;</span></span>
 <span id="cb37-26"><a href="#cb37-26" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span></code></pre></div>
+</div>
 <ul>
 <li>文字列の先頭の <code>"\</code>
 は「直後の改行を無視する」という意味です。期待する出力をそのままの見た目で書けます。</li>
@@ -1306,6 +1353,8 @@ class="sourceCode bash"><code class="sourceCode bash"><span id="cb38-1"><a href=
 class="sourceCode bash"><code class="sourceCode bash"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a><span class="ex">cargo</span> add pathdiff</span></code></pre></div>
 <p><code>src/status.rs</code> の先頭の <code>use</code>
 を次のように増やします。</p>
+<div class="code-with-file">
+<div class="code-file"><span class="code-file-name">src/status.rs</span></div>
 <div class="sourceCode" id="cb40"><pre
 class="sourceCode rust"><code class="sourceCode rust"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a><span class="kw">use</span> <span class="pp">std::io::</span>IsTerminal<span class="op">;</span></span>
 <span id="cb40-2"><a href="#cb40-2" aria-hidden="true" tabindex="-1"></a><span class="kw">use</span> <span class="pp">std::path::</span><span class="op">{</span><span class="dt">Path</span><span class="op">,</span> <span class="dt">PathBuf</span><span class="op">};</span></span>
@@ -1313,12 +1362,15 @@ class="sourceCode rust"><code class="sourceCode rust"><span id="cb40-1"><a href=
 <span id="cb40-4"><a href="#cb40-4" aria-hidden="true" tabindex="-1"></a><span class="kw">use</span> <span class="pp">anyhow::</span><span class="dt">Result</span><span class="op">;</span></span>
 <span id="cb40-5"><a href="#cb40-5" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb40-6"><a href="#cb40-6" aria-hidden="true" tabindex="-1"></a><span class="kw">use</span> <span class="kw">crate</span><span class="pp">::</span>git<span class="op">;</span></span></code></pre></div>
+</div>
 <p><code>crate::git</code> は「このクレート（gsct）の中の
 <code>git</code> モジュール」という意味です。<code>IsTerminal</code>
 はトレイトで、<code>use</code> しないと <code>.is_terminal()</code>
 メソッドが使えません。</p>
 <p><code>pub enum Group { ... }</code>
 の直後に、見出しと色を返すメソッドを追加します。</p>
+<div class="code-with-file">
+<div class="code-file"><span class="code-file-name">src/status.rs</span></div>
 <div class="sourceCode" id="cb41"><pre
 class="sourceCode rust"><code class="sourceCode rust"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a><span class="kw">impl</span> Group <span class="op">{</span></span>
 <span id="cb41-2"><a href="#cb41-2" aria-hidden="true" tabindex="-1"></a>    <span class="co">/// 表示する順番</span></span>
@@ -1348,7 +1400,10 @@ class="sourceCode rust"><code class="sourceCode rust"><span id="cb41-1"><a href=
 <span id="cb41-26"><a href="#cb41-26" aria-hidden="true" tabindex="-1"></a>        <span class="op">}</span></span>
 <span id="cb41-27"><a href="#cb41-27" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
 <span id="cb41-28"><a href="#cb41-28" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+</div>
 <p><code>pub enum Kind { ... }</code> の直後に追加します。</p>
+<div class="code-with-file">
+<div class="code-file"><span class="code-file-name">src/status.rs</span></div>
 <div class="sourceCode" id="cb42"><pre
 class="sourceCode rust"><code class="sourceCode rust"><span id="cb42-1"><a href="#cb42-1" aria-hidden="true" tabindex="-1"></a><span class="kw">impl</span> Kind <span class="op">{</span></span>
 <span id="cb42-2"><a href="#cb42-2" aria-hidden="true" tabindex="-1"></a>    <span class="kw">fn</span> label(<span class="kw">self</span>) <span class="op">-&gt;</span> <span class="op">&amp;</span><span class="ot">&#39;static</span> <span class="dt">str</span> <span class="op">{</span></span>
@@ -1385,6 +1440,7 @@ class="sourceCode rust"><code class="sourceCode rust"><span id="cb42-1"><a href=
 <span id="cb42-33"><a href="#cb42-33" aria-hidden="true" tabindex="-1"></a>        <span class="op">}</span></span>
 <span id="cb42-34"><a href="#cb42-34" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
 <span id="cb42-35"><a href="#cb42-35" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+</div>
 <ul>
 <li><code>&amp;'static str</code>
 は「プログラム終了まで有効な文字列」、つまりソースコードに直接書いた文字列リテラルの型です（<a
@@ -1400,6 +1456,8 @@ href="https://doc.rust-jp.rs/book-ja/ch18-03-pattern-syntax.html">18.3
 <p>Red で書いた <code>render</code>
 を、次のコードで置き換えます（<code>run</code> と <code>Painter</code>
 も追加）。</p>
+<div class="code-with-file">
+<div class="code-file"><span class="code-file-name">src/status.rs</span></div>
 <div class="sourceCode" id="cb43"><pre
 class="sourceCode rust"><code class="sourceCode rust"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a><span class="co">/// `gs` の本体: git status を番号付きで表示する</span></span>
 <span id="cb43-2"><a href="#cb43-2" aria-hidden="true" tabindex="-1"></a><span class="kw">pub</span> <span class="kw">fn</span> run() <span class="op">-&gt;</span> <span class="dt">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> <span class="op">{</span></span>
@@ -1506,10 +1564,14 @@ class="sourceCode rust"><code class="sourceCode rust"><span id="cb43-1"><a href=
 <span id="cb43-103"><a href="#cb43-103" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb43-104"><a href="#cb43-104" aria-hidden="true" tabindex="-1"></a>    (out<span class="op">,</span> files)</span>
 <span id="cb43-105"><a href="#cb43-105" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+</div>
 <p><code>src/main.rs</code> の
 <code>Command::Status =&gt; { ... }</code> を次の1行に置き換えます。</p>
+<div class="code-with-file">
+<div class="code-file"><span class="code-file-name">src/main.rs</span></div>
 <div class="sourceCode" id="cb44"><pre
 class="sourceCode rust"><code class="sourceCode rust"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a>        <span class="pp">Command::</span>Status <span class="op">=&gt;</span> <span class="pp">status::</span>run()<span class="op">?,</span></span></code></pre></div>
+</div>
 <p><strong>コードの読み方</strong></p>
 <ul>
 <li><code>Path</code> と <code>PathBuf</code>
@@ -1592,6 +1654,8 @@ id="red書き込み内容をテストにする">Red：書き込み内容をテ�
 <div class="sourceCode" id="cb48"><pre
 class="sourceCode bash"><code class="sourceCode bash"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a><span class="ex">cargo</span> add <span class="at">--dev</span> tempfile</span></code></pre></div>
 <p><code>src/cache.rs</code> を新しく作ります。</p>
+<div class="code-with-file">
+<div class="code-file"><span class="code-file-name">src/cache.rs</span></div>
 <div class="sourceCode" id="cb49"><pre
 class="sourceCode rust"><code class="sourceCode rust"><span id="cb49-1"><a href="#cb49-1" aria-hidden="true" tabindex="-1"></a><span class="kw">use</span> <span class="pp">std::</span>fs<span class="op">;</span></span>
 <span id="cb49-2"><a href="#cb49-2" aria-hidden="true" tabindex="-1"></a><span class="kw">use</span> <span class="pp">std::path::</span><span class="op">{</span><span class="dt">Path</span><span class="op">,</span> <span class="dt">PathBuf</span><span class="op">};</span></span>
@@ -1634,6 +1698,7 @@ class="sourceCode rust"><code class="sourceCode rust"><span id="cb49-1"><a href=
 <span id="cb49-39"><a href="#cb49-39" aria-hidden="true" tabindex="-1"></a>        )<span class="op">;</span></span>
 <span id="cb49-40"><a href="#cb49-40" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
 <span id="cb49-41"><a href="#cb49-41" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+</div>
 <ul>
 <li><code>git rev-parse --git-path gsct-status</code> は
 <code>.git</code>
@@ -1653,8 +1718,13 @@ href="https://doc.rust-jp.rs/book-ja/ch04-01-what-is-ownership.html">4.1</a>）�
 <p><code>src/main.rs</code> の <code>mod</code> に
 <code>mod cache;</code> を追加します。さらに <code>src/status.rs</code>
 を次のように変えて、<code>gs</code> の最後に保存するようにします。</p>
+<div class="code-with-file">
+<div class="code-file"><span class="code-file-name">src/status.rs</span></div>
 <div class="sourceCode" id="cb50"><pre
 class="sourceCode rust"><code class="sourceCode rust"><span id="cb50-1"><a href="#cb50-1" aria-hidden="true" tabindex="-1"></a><span class="kw">use</span> <span class="kw">crate</span><span class="pp">::</span><span class="op">{</span>cache<span class="op">,</span> git<span class="op">};</span></span></code></pre></div>
+</div>
+<div class="code-with-file">
+<div class="code-file"><span class="code-file-name">src/status.rs</span></div>
 <div class="sourceCode" id="cb51"><pre
 class="sourceCode rust"><code class="sourceCode rust"><span id="cb51-1"><a href="#cb51-1" aria-hidden="true" tabindex="-1"></a>    <span class="kw">let</span> (text<span class="op">,</span> files) <span class="op">=</span> render(<span class="op">&amp;</span>status<span class="op">,</span> <span class="op">&amp;</span>root<span class="op">,</span> <span class="op">&amp;</span>cwd<span class="op">,</span> color)<span class="op">;</span></span>
 <span id="cb51-2"><a href="#cb51-2" aria-hidden="true" tabindex="-1"></a>    <span class="pp">print!</span>(<span class="st">&quot;{text}&quot;</span>)<span class="op">;</span></span>
@@ -1662,12 +1732,15 @@ class="sourceCode rust"><code class="sourceCode rust"><span id="cb51-1"><a href=
 <span id="cb51-4"><a href="#cb51-4" aria-hidden="true" tabindex="-1"></a>    <span class="pp">cache::</span>save(<span class="op">&amp;</span>files)<span class="op">?;</span></span>
 <span id="cb51-5"><a href="#cb51-5" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb51-6"><a href="#cb51-6" aria-hidden="true" tabindex="-1"></a>    <span class="cn">Ok</span>(())</span></code></pre></div>
+</div>
 <div class="sourceCode" id="cb52"><pre
 class="sourceCode bash"><code class="sourceCode bash"><span id="cb52-1"><a href="#cb52-1" aria-hidden="true" tabindex="-1"></a><span class="ex">cargo</span> test        <span class="co"># writes_files_separated_by_nul が失敗する</span></span>
 <span id="cb52-2"><a href="#cb52-2" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> add <span class="at">-A</span></span>
 <span id="cb52-3"><a href="#cb52-3" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> commit <span class="at">-m</span> <span class="st">&quot;test: add failing test for cache writing&quot;</span></span></code></pre></div>
 <h3 id="green書き込みを実装する">Green：書き込みを実装する</h3>
 <p><code>write_to</code> を次のコードで置き換えます。</p>
+<div class="code-with-file">
+<div class="code-file"><span class="code-file-name">src/cache.rs</span></div>
 <div class="sourceCode" id="cb53"><pre
 class="sourceCode rust"><code class="sourceCode rust"><span id="cb53-1"><a href="#cb53-1" aria-hidden="true" tabindex="-1"></a><span class="co">/// ファイル一覧を NUL 区切りで path に書き込む</span></span>
 <span id="cb53-2"><a href="#cb53-2" aria-hidden="true" tabindex="-1"></a><span class="kw">fn</span> write_to(path<span class="op">:</span> <span class="op">&amp;</span><span class="dt">Path</span><span class="op">,</span> files<span class="op">:</span> <span class="op">&amp;</span>[<span class="dt">PathBuf</span>]) <span class="op">-&gt;</span> <span class="dt">Result</span><span class="op">&lt;</span>()<span class="op">&gt;</span> <span class="op">{</span></span>
@@ -1678,6 +1751,7 @@ class="sourceCode rust"><code class="sourceCode rust"><span id="cb53-1"><a href=
 <span id="cb53-7"><a href="#cb53-7" aria-hidden="true" tabindex="-1"></a>        <span class="op">.</span>join(<span class="st">&quot;</span><span class="sc">\0</span><span class="st">&quot;</span>)<span class="op">;</span></span>
 <span id="cb53-8"><a href="#cb53-8" aria-hidden="true" tabindex="-1"></a>    <span class="pp">fs::</span>write(path<span class="op">,</span> content)<span class="op">.</span>with_context(<span class="op">||</span> <span class="pp">format!</span>(<span class="st">&quot;{} に書き込めませんでした&quot;</span><span class="op">,</span> path<span class="op">.</span>display()))</span>
 <span id="cb53-9"><a href="#cb53-9" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+</div>
 <ul>
 <li><code>.collect::&lt;Vec&lt;_&gt;&gt;()</code> の
 <code>::&lt;&gt;</code>
@@ -1767,18 +1841,26 @@ id="red3つの部品のテストを先に書く">Red：3つの部品のテスト
 <p><strong><code>src/cache.rs</code></strong>：読み込み用の関数を追加します。<code>save</code>
 の下に <code>load</code> を、<code>write_to</code> の下に
 <code>read_from</code> を置きます。</p>
+<div class="code-with-file">
+<div class="code-file"><span class="code-file-name">src/cache.rs</span></div>
 <div class="sourceCode" id="cb57"><pre
 class="sourceCode rust"><code class="sourceCode rust"><span id="cb57-1"><a href="#cb57-1" aria-hidden="true" tabindex="-1"></a><span class="co">/// キャッシュからファイル一覧を読み込む</span></span>
 <span id="cb57-2"><a href="#cb57-2" aria-hidden="true" tabindex="-1"></a><span class="kw">pub</span> <span class="kw">fn</span> load() <span class="op">-&gt;</span> <span class="dt">Result</span><span class="op">&lt;</span><span class="dt">Vec</span><span class="op">&lt;</span><span class="dt">String</span><span class="op">&gt;&gt;</span> <span class="op">{</span></span>
 <span id="cb57-3"><a href="#cb57-3" aria-hidden="true" tabindex="-1"></a>    read_from(<span class="op">&amp;</span>cache_path()<span class="op">?</span>)</span>
 <span id="cb57-4"><a href="#cb57-4" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+</div>
+<div class="code-with-file">
+<div class="code-file"><span class="code-file-name">src/cache.rs</span></div>
 <div class="sourceCode" id="cb58"><pre
 class="sourceCode rust"><code class="sourceCode rust"><span id="cb58-1"><a href="#cb58-1" aria-hidden="true" tabindex="-1"></a><span class="co">/// path から NUL 区切りのファイル一覧を読み込む</span></span>
 <span id="cb58-2"><a href="#cb58-2" aria-hidden="true" tabindex="-1"></a><span class="kw">fn</span> read_from(path<span class="op">:</span> <span class="op">&amp;</span><span class="dt">Path</span>) <span class="op">-&gt;</span> <span class="dt">Result</span><span class="op">&lt;</span><span class="dt">Vec</span><span class="op">&lt;</span><span class="dt">String</span><span class="op">&gt;&gt;</span> <span class="op">{</span></span>
 <span id="cb58-3"><a href="#cb58-3" aria-hidden="true" tabindex="-1"></a>    <span class="pp">todo!</span>()</span>
 <span id="cb58-4"><a href="#cb58-4" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+</div>
 <p><code>mod tests</code>
 に2つ追加します。「書いたものを読めば元に戻る」という往復テストと、キャッシュがないときのテストです。</p>
+<div class="code-with-file">
+<div class="code-file"><span class="code-file-name">src/cache.rs</span></div>
 <div class="sourceCode" id="cb59"><pre
 class="sourceCode rust"><code class="sourceCode rust"><span id="cb59-1"><a href="#cb59-1" aria-hidden="true" tabindex="-1"></a>    <span class="at">#[</span>test<span class="at">]</span></span>
 <span id="cb59-2"><a href="#cb59-2" aria-hidden="true" tabindex="-1"></a>    <span class="kw">fn</span> reads_back_written_files() <span class="op">{</span></span>
@@ -1796,8 +1878,11 @@ class="sourceCode rust"><code class="sourceCode rust"><span id="cb59-1"><a href=
 <span id="cb59-14"><a href="#cb59-14" aria-hidden="true" tabindex="-1"></a>        <span class="kw">let</span> dir <span class="op">=</span> <span class="pp">tempfile::</span>tempdir()<span class="op">.</span>unwrap()<span class="op">;</span></span>
 <span id="cb59-15"><a href="#cb59-15" aria-hidden="true" tabindex="-1"></a>        <span class="pp">assert!</span>(read_from(<span class="op">&amp;</span>dir<span class="op">.</span>path()<span class="op">.</span>join(<span class="st">&quot;gsct-status&quot;</span>))<span class="op">.</span>is_err())<span class="op">;</span></span>
 <span id="cb59-16"><a href="#cb59-16" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span></code></pre></div>
+</div>
 <p><strong><code>src/expand.rs</code></strong>（新規）：展開処理とテストです。<code>expand_with_cache</code>
 は部品を組み合わせるだけなので、最初から実装しておきます。</p>
+<div class="code-with-file">
+<div class="code-file"><span class="code-file-name">src/expand.rs</span></div>
 <div class="sourceCode" id="cb60"><pre
 class="sourceCode rust"><code class="sourceCode rust"><span id="cb60-1"><a href="#cb60-1" aria-hidden="true" tabindex="-1"></a><span class="kw">use</span> <span class="pp">anyhow::</span><span class="dt">Result</span><span class="op">;</span></span>
 <span id="cb60-2"><a href="#cb60-2" aria-hidden="true" tabindex="-1"></a></span>
@@ -1867,9 +1952,12 @@ class="sourceCode rust"><code class="sourceCode rust"><span id="cb60-1"><a href=
 <span id="cb60-66"><a href="#cb60-66" aria-hidden="true" tabindex="-1"></a>        <span class="pp">assert_eq!</span>(expand(<span class="op">&amp;</span>args<span class="op">,</span> <span class="op">&amp;</span>files)<span class="op">,</span> args)<span class="op">;</span></span>
 <span id="cb60-67"><a href="#cb60-67" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
 <span id="cb60-68"><a href="#cb60-68" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+</div>
 <p><strong><code>src/exec.rs</code></strong>（新規）：<code>ge</code>
 の本体と、コマンドを実行する <code>run_command</code>
 です。<code>run_command</code> は Step 8 の alias でも使います。</p>
+<div class="code-with-file">
+<div class="code-file"><span class="code-file-name">src/exec.rs</span></div>
 <div class="sourceCode" id="cb61"><pre
 class="sourceCode rust"><code class="sourceCode rust"><span id="cb61-1"><a href="#cb61-1" aria-hidden="true" tabindex="-1"></a><span class="kw">use</span> <span class="pp">std::process::</span>Command<span class="op">;</span></span>
 <span id="cb61-2"><a href="#cb61-2" aria-hidden="true" tabindex="-1"></a></span>
@@ -1906,15 +1994,21 @@ class="sourceCode rust"><code class="sourceCode rust"><span id="cb61-1"><a href=
 <span id="cb61-33"><a href="#cb61-33" aria-hidden="true" tabindex="-1"></a>        <span class="pp">assert!</span>(run_command(<span class="st">&quot;gsct-no-such-command&quot;</span><span class="op">,</span> <span class="op">&amp;</span>[])<span class="op">.</span>is_err())<span class="op">;</span></span>
 <span id="cb61-34"><a href="#cb61-34" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
 <span id="cb61-35"><a href="#cb61-35" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+</div>
 <p><strong><code>src/main.rs</code></strong>：<code>mod</code>
 を次の並びにし、<code>run()</code> を「<code>match</code>
 の結果を終了コードとして受け取る」形に書き換えます。ここから先は各コマンドが終了コードを返すためです。</p>
+<div class="code-with-file">
+<div class="code-file"><span class="code-file-name">src/main.rs</span></div>
 <div class="sourceCode" id="cb62"><pre
 class="sourceCode rust"><code class="sourceCode rust"><span id="cb62-1"><a href="#cb62-1" aria-hidden="true" tabindex="-1"></a><span class="kw">mod</span> cache<span class="op">;</span></span>
 <span id="cb62-2"><a href="#cb62-2" aria-hidden="true" tabindex="-1"></a><span class="kw">mod</span> exec<span class="op">;</span></span>
 <span id="cb62-3"><a href="#cb62-3" aria-hidden="true" tabindex="-1"></a><span class="kw">mod</span> expand<span class="op">;</span></span>
 <span id="cb62-4"><a href="#cb62-4" aria-hidden="true" tabindex="-1"></a><span class="kw">mod</span> git<span class="op">;</span></span>
 <span id="cb62-5"><a href="#cb62-5" aria-hidden="true" tabindex="-1"></a><span class="kw">mod</span> status<span class="op">;</span></span></code></pre></div>
+</div>
+<div class="code-with-file">
+<div class="code-file"><span class="code-file-name">src/main.rs</span></div>
 <div class="sourceCode" id="cb63"><pre
 class="sourceCode rust"><code class="sourceCode rust"><span id="cb63-1"><a href="#cb63-1" aria-hidden="true" tabindex="-1"></a><span class="kw">fn</span> run() <span class="op">-&gt;</span> <span class="dt">Result</span><span class="op">&lt;</span><span class="dt">i32</span><span class="op">&gt;</span> <span class="op">{</span></span>
 <span id="cb63-2"><a href="#cb63-2" aria-hidden="true" tabindex="-1"></a>    <span class="kw">let</span> cli <span class="op">=</span> <span class="pp">Cli::</span>parse()<span class="op">;</span></span>
@@ -1939,6 +2033,7 @@ class="sourceCode rust"><code class="sourceCode rust"><span id="cb63-1"><a href=
 <span id="cb63-21"><a href="#cb63-21" aria-hidden="true" tabindex="-1"></a>    <span class="op">};</span></span>
 <span id="cb63-22"><a href="#cb63-22" aria-hidden="true" tabindex="-1"></a>    <span class="cn">Ok</span>(code)</span>
 <span id="cb63-23"><a href="#cb63-23" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+</div>
 <p><code>match</code> も <code>{ ... }</code>
 のブロックも「値を返す式」です。各アームの最後の <code>0</code>
 が、そのアームの値になります。</p>
@@ -1948,6 +2043,8 @@ class="sourceCode bash"><code class="sourceCode bash"><span id="cb64-1"><a href=
 <span id="cb64-3"><a href="#cb64-3" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> commit <span class="at">-m</span> <span class="st">&quot;test: add failing tests for argument expansion and exec&quot;</span></span></code></pre></div>
 <h3 id="green3つを実装する">Green：3つを実装する</h3>
 <p><code>read_from</code>（<code>src/cache.rs</code>）：</p>
+<div class="code-with-file">
+<div class="code-file"><span class="code-file-name">src/cache.rs</span></div>
 <div class="sourceCode" id="cb65"><pre
 class="sourceCode rust"><code class="sourceCode rust"><span id="cb65-1"><a href="#cb65-1" aria-hidden="true" tabindex="-1"></a><span class="co">/// path から NUL 区切りのファイル一覧を読み込む</span></span>
 <span id="cb65-2"><a href="#cb65-2" aria-hidden="true" tabindex="-1"></a><span class="kw">fn</span> read_from(path<span class="op">:</span> <span class="op">&amp;</span><span class="dt">Path</span>) <span class="op">-&gt;</span> <span class="dt">Result</span><span class="op">&lt;</span><span class="dt">Vec</span><span class="op">&lt;</span><span class="dt">String</span><span class="op">&gt;&gt;</span> <span class="op">{</span></span>
@@ -1959,8 +2056,11 @@ class="sourceCode rust"><code class="sourceCode rust"><span id="cb65-1"><a href=
 <span id="cb65-8"><a href="#cb65-8" aria-hidden="true" tabindex="-1"></a>        <span class="op">.</span>map(<span class="dt">String</span><span class="pp">::</span>from)</span>
 <span id="cb65-9"><a href="#cb65-9" aria-hidden="true" tabindex="-1"></a>        <span class="op">.</span>collect())</span>
 <span id="cb65-10"><a href="#cb65-10" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+</div>
 <p><code>parse_range</code> と
 <code>expand</code>（<code>src/expand.rs</code>）：</p>
+<div class="code-with-file">
+<div class="code-file"><span class="code-file-name">src/expand.rs</span></div>
 <div class="sourceCode" id="cb66"><pre
 class="sourceCode rust"><code class="sourceCode rust"><span id="cb66-1"><a href="#cb66-1" aria-hidden="true" tabindex="-1"></a><span class="co">/// &quot;3&quot; → Some((3, 3))、&quot;2-4&quot; → Some((2, 4))、それ以外 → None</span></span>
 <span id="cb66-2"><a href="#cb66-2" aria-hidden="true" tabindex="-1"></a><span class="kw">fn</span> parse_range(arg<span class="op">:</span> <span class="op">&amp;</span><span class="dt">str</span>) <span class="op">-&gt;</span> <span class="dt">Option</span><span class="op">&lt;</span>(<span class="dt">usize</span><span class="op">,</span> <span class="dt">usize</span>)<span class="op">&gt;</span> <span class="op">{</span></span>
@@ -2002,7 +2102,10 @@ class="sourceCode rust"><code class="sourceCode rust"><span id="cb66-1"><a href=
 <span id="cb66-38"><a href="#cb66-38" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb66-39"><a href="#cb66-39" aria-hidden="true" tabindex="-1"></a>    result</span>
 <span id="cb66-40"><a href="#cb66-40" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+</div>
 <p><code>run_command</code>（<code>src/exec.rs</code>）：</p>
+<div class="code-with-file">
+<div class="code-file"><span class="code-file-name">src/exec.rs</span></div>
 <div class="sourceCode" id="cb67"><pre
 class="sourceCode rust"><code class="sourceCode rust"><span id="cb67-1"><a href="#cb67-1" aria-hidden="true" tabindex="-1"></a><span class="co">/// コマンドを実行し、終了コードを返す</span></span>
 <span id="cb67-2"><a href="#cb67-2" aria-hidden="true" tabindex="-1"></a><span class="kw">pub</span> <span class="kw">fn</span> run_command(program<span class="op">:</span> <span class="op">&amp;</span><span class="dt">str</span><span class="op">,</span> args<span class="op">:</span> <span class="op">&amp;</span>[<span class="dt">String</span>]) <span class="op">-&gt;</span> <span class="dt">Result</span><span class="op">&lt;</span><span class="dt">i32</span><span class="op">&gt;</span> <span class="op">{</span></span>
@@ -2012,6 +2115,7 @@ class="sourceCode rust"><code class="sourceCode rust"><span id="cb67-1"><a href=
 <span id="cb67-6"><a href="#cb67-6" aria-hidden="true" tabindex="-1"></a>        <span class="op">.</span>with_context(<span class="op">||</span> <span class="pp">format!</span>(<span class="st">&quot;{program} を実行できませんでした&quot;</span>))<span class="op">?;</span></span>
 <span id="cb67-7"><a href="#cb67-7" aria-hidden="true" tabindex="-1"></a>    <span class="cn">Ok</span>(status<span class="op">.</span>code()<span class="op">.</span>unwrap_or(<span class="dv">1</span>))</span>
 <span id="cb67-8"><a href="#cb67-8" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+</div>
 <p><strong>コードの読み方</strong></p>
 <ul>
 <li><code>start.parse().ok()?</code> は3段階です。<code>parse()</code>
@@ -2091,6 +2195,8 @@ class="sourceCode bash"><code class="sourceCode bash"><span id="cb70-1"><a href=
 <h3 id="rede2e-テストを書く">Red：E2E テストを書く</h3>
 <p><code>tests/cli.rs</code> を新しく作ります。<code>tests/</code>
 配下のファイルは <code>cargo test</code> で自動的に実行されます。</p>
+<div class="code-with-file">
+<div class="code-file"><span class="code-file-name">tests/cli.rs</span></div>
 <div class="sourceCode" id="cb71"><pre
 class="sourceCode rust"><code class="sourceCode rust"><span id="cb71-1"><a href="#cb71-1" aria-hidden="true" tabindex="-1"></a><span class="kw">use</span> <span class="pp">std::</span>fs<span class="op">;</span></span>
 <span id="cb71-2"><a href="#cb71-2" aria-hidden="true" tabindex="-1"></a><span class="kw">use</span> <span class="pp">std::path::</span><span class="dt">Path</span><span class="op">;</span></span>
@@ -2147,6 +2253,7 @@ class="sourceCode rust"><code class="sourceCode rust"><span id="cb71-1"><a href=
 <span id="cb71-53"><a href="#cb71-53" aria-hidden="true" tabindex="-1"></a>            <span class="op">.</span>contains(<span class="st">&quot;不明な alias です&quot;</span>)</span>
 <span id="cb71-54"><a href="#cb71-54" aria-hidden="true" tabindex="-1"></a>    )<span class="op">;</span></span>
 <span id="cb71-55"><a href="#cb71-55" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+</div>
 <ul>
 <li><code>env!("CARGO_BIN_EXE_gsct")</code> は、Cargo
 が結合テストのために用意してくれる「ビルド済みの gsct
@@ -2161,6 +2268,8 @@ class="sourceCode rust"><code class="sourceCode rust"><span id="cb71-1"><a href=
 <p><code>src/aliases.rs</code> を新しく作ります。alias
 の一覧はデータなので最初から書き、名前で探す <code>find</code> だけ
 <code>todo!()</code> にします。</p>
+<div class="code-with-file">
+<div class="code-file"><span class="code-file-name">src/aliases.rs</span></div>
 <div class="sourceCode" id="cb72"><pre
 class="sourceCode rust"><code class="sourceCode rust"><span id="cb72-1"><a href="#cb72-1" aria-hidden="true" tabindex="-1"></a><span class="kw">use</span> <span class="pp">anyhow::</span><span class="op">{</span>Context<span class="op">,</span> <span class="dt">Result</span><span class="op">};</span></span>
 <span id="cb72-2"><a href="#cb72-2" aria-hidden="true" tabindex="-1"></a></span>
@@ -2360,6 +2469,7 @@ class="sourceCode rust"><code class="sourceCode rust"><span id="cb72-1"><a href=
 <span id="cb72-196"><a href="#cb72-196" aria-hidden="true" tabindex="-1"></a>        <span class="pp">assert!</span>(find(<span class="st">&quot;unknown&quot;</span>)<span class="op">.</span>is_none())<span class="op">;</span></span>
 <span id="cb72-197"><a href="#cb72-197" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
 <span id="cb72-198"><a href="#cb72-198" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+</div>
 <p><strong>コードの読み方</strong></p>
 <ul>
 <li>alias の一覧はデータとして定数に書き、実行する処理は
@@ -2390,20 +2500,29 @@ class="sourceCode bash"><code class="sourceCode bash"><span id="cb74-1"><a href=
 <span id="cb74-2"><a href="#cb74-2" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> commit <span class="at">-m</span> <span class="st">&quot;test: add failing tests for git aliases&quot;</span></span></code></pre></div>
 <h3 id="greenalias-をつなぐ">Green：alias をつなぐ</h3>
 <p><code>find</code> を実装します。</p>
+<div class="code-with-file">
+<div class="code-file"><span class="code-file-name">src/aliases.rs</span></div>
 <div class="sourceCode" id="cb75"><pre
 class="sourceCode rust"><code class="sourceCode rust"><span id="cb75-1"><a href="#cb75-1" aria-hidden="true" tabindex="-1"></a><span class="co">/// 名前から alias を探す</span></span>
 <span id="cb75-2"><a href="#cb75-2" aria-hidden="true" tabindex="-1"></a><span class="kw">fn</span> find(name<span class="op">:</span> <span class="op">&amp;</span><span class="dt">str</span>) <span class="op">-&gt;</span> <span class="dt">Option</span><span class="op">&lt;&amp;</span><span class="ot">&#39;static</span> Alias<span class="op">&gt;</span> <span class="op">{</span></span>
 <span id="cb75-3"><a href="#cb75-3" aria-hidden="true" tabindex="-1"></a>    ALIASES<span class="op">.</span>iter()<span class="op">.</span>find(<span class="op">|</span>alias<span class="op">|</span> alias<span class="op">.</span>name <span class="op">==</span> name)</span>
 <span id="cb75-4"><a href="#cb75-4" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+</div>
 <p><code>src/main.rs</code> の <code>run()</code>
 の2か所を変えます。</p>
+<div class="code-with-file">
+<div class="code-file"><span class="code-file-name">src/main.rs</span></div>
 <div class="sourceCode" id="cb76"><pre
 class="sourceCode rust"><code class="sourceCode rust"><span id="cb76-1"><a href="#cb76-1" aria-hidden="true" tabindex="-1"></a>        <span class="pp">Command::</span>Aliases <span class="op">=&gt;</span> <span class="op">{</span></span>
 <span id="cb76-2"><a href="#cb76-2" aria-hidden="true" tabindex="-1"></a>            <span class="pp">aliases::</span>print_list()<span class="op">;</span></span>
 <span id="cb76-3"><a href="#cb76-3" aria-hidden="true" tabindex="-1"></a>            <span class="dv">0</span></span>
 <span id="cb76-4"><a href="#cb76-4" aria-hidden="true" tabindex="-1"></a>        <span class="op">}</span></span></code></pre></div>
+</div>
+<div class="code-with-file">
+<div class="code-file"><span class="code-file-name">src/main.rs</span></div>
 <div class="sourceCode" id="cb77"><pre
 class="sourceCode rust"><code class="sourceCode rust"><span id="cb77-1"><a href="#cb77-1" aria-hidden="true" tabindex="-1"></a>        <span class="pp">Command::</span>Alias(args) <span class="op">=&gt;</span> <span class="pp">aliases::</span>run(<span class="op">&amp;</span>args)<span class="op">?,</span></span></code></pre></div>
+</div>
 <p><strong>確認</strong></p>
 <div class="sourceCode" id="cb78"><pre
 class="sourceCode bash"><code class="sourceCode bash"><span id="cb78-1"><a href="#cb78-1" aria-hidden="true" tabindex="-1"></a><span class="ex">mise</span> run ci</span>
@@ -2462,20 +2581,31 @@ class="sourceCode bash"><code class="sourceCode bash"><span id="cb80-1"><a href=
 <p><code>src/main.rs</code> の <code>use</code>
 を次のように変え、<code>mod</code> に <code>mod links;</code>
 を追加します。</p>
+<div class="code-with-file">
+<div class="code-file"><span class="code-file-name">src/main.rs</span></div>
 <div class="sourceCode" id="cb81"><pre
 class="sourceCode rust"><code class="sourceCode rust"><span id="cb81-1"><a href="#cb81-1" aria-hidden="true" tabindex="-1"></a><span class="kw">use</span> <span class="pp">std::</span>env<span class="op">;</span></span>
 <span id="cb81-2"><a href="#cb81-2" aria-hidden="true" tabindex="-1"></a><span class="kw">use</span> <span class="pp">std::path::</span><span class="op">{</span><span class="dt">Path</span><span class="op">,</span> <span class="dt">PathBuf</span><span class="op">};</span></span>
 <span id="cb81-3"><a href="#cb81-3" aria-hidden="true" tabindex="-1"></a><span class="kw">use</span> <span class="pp">std::</span>process<span class="op">;</span></span></code></pre></div>
+</div>
 <p><code>run()</code> の1行目を変え、<code>run()</code> の後ろに
 <code>todo!()</code> の関数を追加します。</p>
+<div class="code-with-file">
+<div class="code-file"><span class="code-file-name">src/main.rs</span></div>
 <div class="sourceCode" id="cb82"><pre
 class="sourceCode rust"><code class="sourceCode rust"><span id="cb82-1"><a href="#cb82-1" aria-hidden="true" tabindex="-1"></a>    <span class="kw">let</span> cli <span class="op">=</span> <span class="pp">Cli::</span>parse_from(args_with_alias_name(<span class="pp">env::</span>args()<span class="op">.</span>collect()))<span class="op">;</span></span></code></pre></div>
+</div>
+<div class="code-with-file">
+<div class="code-file"><span class="code-file-name">src/main.rs</span></div>
 <div class="sourceCode" id="cb83"><pre
 class="sourceCode rust"><code class="sourceCode rust"><span id="cb83-1"><a href="#cb83-1" aria-hidden="true" tabindex="-1"></a><span class="co">/// `gd 1` のようにシンボリックリンク経由で呼ばれたら、`gsct gd 1` として扱う</span></span>
 <span id="cb83-2"><a href="#cb83-2" aria-hidden="true" tabindex="-1"></a><span class="kw">fn</span> args_with_alias_name(args<span class="op">:</span> <span class="dt">Vec</span><span class="op">&lt;</span><span class="dt">String</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="dt">Vec</span><span class="op">&lt;</span><span class="dt">String</span><span class="op">&gt;</span> <span class="op">{</span></span>
 <span id="cb83-3"><a href="#cb83-3" aria-hidden="true" tabindex="-1"></a>    <span class="pp">todo!</span>()</span>
 <span id="cb83-4"><a href="#cb83-4" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+</div>
 <p><code>mod tests</code> の先頭に追加します。</p>
+<div class="code-with-file">
+<div class="code-file"><span class="code-file-name">src/main.rs</span></div>
 <div class="sourceCode" id="cb84"><pre
 class="sourceCode rust"><code class="sourceCode rust"><span id="cb84-1"><a href="#cb84-1" aria-hidden="true" tabindex="-1"></a>    <span class="co">/// テスト用に &amp;str の配列を Vec&lt;String&gt; に変換する</span></span>
 <span id="cb84-2"><a href="#cb84-2" aria-hidden="true" tabindex="-1"></a>    <span class="kw">fn</span> strings(items<span class="op">:</span> <span class="op">&amp;</span>[<span class="op">&amp;</span><span class="dt">str</span>]) <span class="op">-&gt;</span> <span class="dt">Vec</span><span class="op">&lt;</span><span class="dt">String</span><span class="op">&gt;</span> <span class="op">{</span></span>
@@ -2493,6 +2623,7 @@ class="sourceCode rust"><code class="sourceCode rust"><span id="cb84-1"><a href=
 <span id="cb84-14"><a href="#cb84-14" aria-hidden="true" tabindex="-1"></a>        <span class="kw">let</span> args <span class="op">=</span> strings(<span class="op">&amp;</span>[<span class="st">&quot;/home/me/.local/bin/gd&quot;</span><span class="op">,</span> <span class="st">&quot;1&quot;</span>])<span class="op">;</span></span>
 <span id="cb84-15"><a href="#cb84-15" aria-hidden="true" tabindex="-1"></a>        <span class="pp">assert_eq!</span>(args_with_alias_name(args)<span class="op">,</span> [<span class="st">&quot;gsct&quot;</span><span class="op">,</span> <span class="st">&quot;gd&quot;</span><span class="op">,</span> <span class="st">&quot;1&quot;</span>])<span class="op">;</span></span>
 <span id="cb84-16"><a href="#cb84-16" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span></code></pre></div>
+</div>
 <p><code>/home/me/.local/bin/gd 1</code>
 のようにフルパスで呼ばれても、サブコマンド名は <code>gd</code>
 になることを確かめています。このテストがないと、「シェルから
@@ -2503,6 +2634,8 @@ class="sourceCode rust"><code class="sourceCode rust"><span id="cb84-1"><a href=
 は他の部品を組み合わせるだけなので最初から実装し、<code>PATH</code>
 を検索する <code>find_in_path</code> を <code>todo!()</code>
 にします。</p>
+<div class="code-with-file">
+<div class="code-file"><span class="code-file-name">src/links.rs</span></div>
 <div class="sourceCode" id="cb85"><pre
 class="sourceCode rust"><code class="sourceCode rust"><span id="cb85-1"><a href="#cb85-1" aria-hidden="true" tabindex="-1"></a><span class="kw">use</span> <span class="pp">std::</span>env<span class="op">;</span></span>
 <span id="cb85-2"><a href="#cb85-2" aria-hidden="true" tabindex="-1"></a><span class="kw">use</span> <span class="pp">std::ffi::</span>OsStr<span class="op">;</span></span>
@@ -2595,6 +2728,7 @@ class="sourceCode rust"><code class="sourceCode rust"><span id="cb85-1"><a href=
 <span id="cb85-89"><a href="#cb85-89" aria-hidden="true" tabindex="-1"></a>        <span class="pp">assert_eq!</span>(find_in_path(<span class="st">&quot;gd&quot;</span><span class="op">,</span> <span class="op">&amp;</span>path_var<span class="op">,</span> dir<span class="op">.</span>path())<span class="op">,</span> <span class="cn">None</span>)<span class="op">;</span></span>
 <span id="cb85-90"><a href="#cb85-90" aria-hidden="true" tabindex="-1"></a>    <span class="op">}</span></span>
 <span id="cb85-91"><a href="#cb85-91" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+</div>
 <ul>
 <li><code>env::current_exe()</code> は、実行中の <code>gsct</code>
 自身のパスを返します。リンクはここを指します。</li>
@@ -2609,6 +2743,8 @@ OS（Linux、macOS）専用の機能です。Windows
 </ul>
 <h3 id="rede2e-テスト">Red：E2E テスト</h3>
 <p><code>tests/cli.rs</code> の末尾に追加します。</p>
+<div class="code-with-file">
+<div class="code-file"><span class="code-file-name">tests/cli.rs</span></div>
 <div class="sourceCode" id="cb86"><pre
 class="sourceCode rust"><code class="sourceCode rust"><span id="cb86-1"><a href="#cb86-1" aria-hidden="true" tabindex="-1"></a><span class="at">#[</span>test<span class="at">]</span></span>
 <span id="cb86-2"><a href="#cb86-2" aria-hidden="true" tabindex="-1"></a><span class="kw">fn</span> install_links_skips_names_of_existing_commands() <span class="op">{</span></span>
@@ -2649,6 +2785,7 @@ class="sourceCode rust"><code class="sourceCode rust"><span id="cb86-1"><a href=
 <span id="cb86-37"><a href="#cb86-37" aria-hidden="true" tabindex="-1"></a>    <span class="kw">let</span> expected <span class="op">=</span> <span class="pp">fs::</span>canonicalize(repo<span class="op">.</span>path())<span class="op">.</span>unwrap()<span class="op">;</span></span>
 <span id="cb86-38"><a href="#cb86-38" aria-hidden="true" tabindex="-1"></a>    <span class="pp">assert_eq!</span>(toplevel<span class="op">.</span>trim()<span class="op">,</span> expected<span class="op">.</span>to_str()<span class="op">.</span>unwrap())<span class="op">;</span></span>
 <span id="cb86-39"><a href="#cb86-39" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+</div>
 <ul>
 <li>1つ目は、<code>PATH</code> を「<code>gd</code>
 だけがあるディレクトリ」に差し替えて実行し、<code>gd</code>
@@ -2667,6 +2804,8 @@ class="sourceCode bash"><code class="sourceCode bash"><span id="cb87-1"><a href=
 <h3 id="green実装する">Green：実装する</h3>
 <p><code>src/main.rs</code> の <code>args_with_alias_name</code>
 を実装します。</p>
+<div class="code-with-file">
+<div class="code-file"><span class="code-file-name">src/main.rs</span></div>
 <div class="sourceCode" id="cb88"><pre
 class="sourceCode rust"><code class="sourceCode rust"><span id="cb88-1"><a href="#cb88-1" aria-hidden="true" tabindex="-1"></a><span class="co">/// `gd 1` のようにシンボリックリンク経由で呼ばれたら、`gsct gd 1` として扱う</span></span>
 <span id="cb88-2"><a href="#cb88-2" aria-hidden="true" tabindex="-1"></a><span class="kw">fn</span> args_with_alias_name(<span class="kw">mut</span> args<span class="op">:</span> <span class="dt">Vec</span><span class="op">&lt;</span><span class="dt">String</span><span class="op">&gt;</span>) <span class="op">-&gt;</span> <span class="dt">Vec</span><span class="op">&lt;</span><span class="dt">String</span><span class="op">&gt;</span> <span class="op">{</span></span>
@@ -2684,14 +2823,20 @@ class="sourceCode rust"><code class="sourceCode rust"><span id="cb88-1"><a href=
 <span id="cb88-14"><a href="#cb88-14" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb88-15"><a href="#cb88-15" aria-hidden="true" tabindex="-1"></a>    args</span>
 <span id="cb88-16"><a href="#cb88-16" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+</div>
 <p><code>Command::InstallLinks</code> を次のように変えます。</p>
+<div class="code-with-file">
+<div class="code-file"><span class="code-file-name">src/main.rs</span></div>
 <div class="sourceCode" id="cb89"><pre
 class="sourceCode rust"><code class="sourceCode rust"><span id="cb89-1"><a href="#cb89-1" aria-hidden="true" tabindex="-1"></a>        <span class="pp">Command::</span>InstallLinks <span class="op">{</span> dir<span class="op">,</span> force<span class="op">,</span> skip <span class="op">}</span> <span class="op">=&gt;</span> <span class="op">{</span></span>
 <span id="cb89-2"><a href="#cb89-2" aria-hidden="true" tabindex="-1"></a>            <span class="pp">links::</span>install(<span class="op">&amp;</span>dir<span class="op">,</span> force<span class="op">,</span> <span class="op">&amp;</span>skip)<span class="op">?;</span></span>
 <span id="cb89-3"><a href="#cb89-3" aria-hidden="true" tabindex="-1"></a>            <span class="dv">0</span></span>
 <span id="cb89-4"><a href="#cb89-4" aria-hidden="true" tabindex="-1"></a>        <span class="op">}</span></span></code></pre></div>
+</div>
 <p><code>src/links.rs</code> の <code>find_in_path</code>
 を実装します。</p>
+<div class="code-with-file">
+<div class="code-file"><span class="code-file-name">src/links.rs</span></div>
 <div class="sourceCode" id="cb90"><pre
 class="sourceCode rust"><code class="sourceCode rust"><span id="cb90-1"><a href="#cb90-1" aria-hidden="true" tabindex="-1"></a><span class="kw">fn</span> find_in_path(name<span class="op">:</span> <span class="op">&amp;</span><span class="dt">str</span><span class="op">,</span> path_var<span class="op">:</span> <span class="op">&amp;</span>OsStr<span class="op">,</span> exclude<span class="op">:</span> <span class="op">&amp;</span><span class="dt">Path</span>) <span class="op">-&gt;</span> <span class="dt">Option</span><span class="op">&lt;</span><span class="dt">PathBuf</span><span class="op">&gt;</span> <span class="op">{</span></span>
 <span id="cb90-2"><a href="#cb90-2" aria-hidden="true" tabindex="-1"></a>    <span class="pp">env::</span>split_paths(path_var)</span>
@@ -2699,6 +2844,7 @@ class="sourceCode rust"><code class="sourceCode rust"><span id="cb90-1"><a href=
 <span id="cb90-4"><a href="#cb90-4" aria-hidden="true" tabindex="-1"></a>        <span class="op">.</span>map(<span class="op">|</span>dir<span class="op">|</span> dir<span class="op">.</span>join(name))</span>
 <span id="cb90-5"><a href="#cb90-5" aria-hidden="true" tabindex="-1"></a>        <span class="op">.</span>find(<span class="op">|</span>candidate<span class="op">|</span> candidate<span class="op">.</span>is_file())</span>
 <span id="cb90-6"><a href="#cb90-6" aria-hidden="true" tabindex="-1"></a><span class="op">}</span></span></code></pre></div>
+</div>
 <p><strong>コードの読み方</strong></p>
 <ul>
 <li><code>.and_then(...)</code> は「<code>Some</code>
@@ -2759,6 +2905,8 @@ class="sourceCode bash"><code class="sourceCode bash"><span id="cb93-1"><a href=
 <span id="cb93-2"><a href="#cb93-2" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> switch <span class="at">-c</span> docs/readme</span></code></pre></div>
 <h3 id="手順-1readme-を書く">手順 1：README を書く</h3>
 <p><code>README.md</code> を新しく作ります。</p>
+<div class="code-with-file">
+<div class="code-file"><span class="code-file-name">README.md</span></div>
 <div class="sourceCode" id="cb94"><pre
 class="sourceCode markdown"><code class="sourceCode markdown"><span id="cb94-1"><a href="#cb94-1" aria-hidden="true" tabindex="-1"></a><span class="fu"># gsct</span></span>
 <span id="cb94-2"><a href="#cb94-2" aria-hidden="true" tabindex="-1"></a></span>
@@ -2783,6 +2931,7 @@ class="sourceCode markdown"><code class="sourceCode markdown"><span id="cb94-1">
 <span id="cb94-21"><a href="#cb94-21" aria-hidden="true" tabindex="-1"></a><span class="fu">## 開発</span></span>
 <span id="cb94-22"><a href="#cb94-22" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb94-23"><a href="#cb94-23" aria-hidden="true" tabindex="-1"></a><span class="in">    mise run ci   # フォーマット・静的解析・テスト（CI と同じ）</span></span></code></pre></div>
+</div>
 <h3 id="手順-2pr-をマージする">手順 2：PR をマージする</h3>
 <div class="sourceCode" id="cb95"><pre
 class="sourceCode bash"><code class="sourceCode bash"><span id="cb95-1"><a href="#cb95-1" aria-hidden="true" tabindex="-1"></a><span class="fu">git</span> add <span class="at">-A</span></span>

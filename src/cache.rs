@@ -18,7 +18,12 @@ pub fn save(files: &[PathBuf]) -> Result<()> {
 
 /// ファイル一覧を NUL 区切りで path に書き込む
 fn write_to(path: &Path, files: &[PathBuf]) -> Result<()> {
-    todo!()
+    let content = files
+        .iter()
+        .map(|file| file.to_string_lossy())
+        .collect::<Vec<_>>()
+        .join("\0");
+    fs::write(path, content).with_context(|| format!("{} に書き込めませんでした", path.display()))
 }
 
 #[cfg(test)]

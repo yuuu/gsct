@@ -1,0 +1,71 @@
+name: Release
+
+# v で始まるタグを push すると、各プラットフォーム向けのバイナリをビルドして GitHub Release に公開する。
+# このファイルを変える PR では、ビルドだけを行って公開はしない（ワークフローの動作確認用）。
+on:
+  push:
+    tags: ["v*"]
+  pull_request:
+    paths: [".github/workflows/release.yml"]
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          # Linux は musl で静的リンクし、glibc のバージョンに依存しないバイナリにする
+          - target: x86_64-unknown-linux-musl
+            os: ubuntu-latest
+          - target: aarch64-unknown-linux-musl
+            os: ubuntu-24.04-arm
+          # macOS は Apple Silicon のランナーで両方をビルドする（Intel 向けはクロスコンパイル）
+          - target: x86_64-apple-darwin
+            os: macos-latest
+          - target: aarch64-apple-darwin
+            os: macos-latest
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v7
+      - uses: jdx/mise-action@v5
+      - if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y musl-tools
+      - run: rustup target add ${{ matrix.target }}
+      - uses: Swatinem/rust-cache@v2
+        with:
+          key: ${{ matrix.target }}
+      - run: cargo build --release --locked --target ${{ matrix.target }}
+      - name: Package
+        run: |
+          # MIT ライセンスの条件に従い、LICENSE も同梱する
+          archive=gsct-${{ matrix.target }}.tar.gz
+          tar czf "$archive" -C target/${{ matrix.target }}/release gsct -C "$GITHUB_WORKSPACE" LICENSE
+          shasum -a 256 "$archive" > "$archive.sha256"
+      - uses: actions/upload-artifact@v7
+        with:
+          name: gsct-${{ matrix.target }}
+          path: gsct-${{ matrix.target }}.tar.gz*
+          if-no-files-found: error
+
+  release:
+    if: startsWith(github.ref, 'refs/tags/')
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+      - name: Check that the tag matches the version in Cargo.toml
+        run: |
+          version=$(sed -n 's/^version = "\(.*\)"/\1/p' Cargo.toml | head -1)
+          if [ "${GITHUB_REF_NAME}" != "v${version}" ]; then
+            echo "::error::タグ ${GITHUB_REF_NAME} が Cargo.toml の version (${version}) と一致しません"
+            exit 1
+          fi
+      - uses: actions/download-artifact@v8
+        with:
+          path: dist
+          merge-multiple: true
+      - run: gh release create "$GITHUB_REF_NAME" dist/* --verify-tag --generate-notes
+        env:
+          GH_TOKEN: ${{ github.token }}

@@ -7,6 +7,7 @@ use clap::{Parser, Subcommand};
 
 mod aliases;
 mod cache;
+mod complete;
 mod exec;
 mod expand;
 mod git;
@@ -44,6 +45,19 @@ enum Command {
         #[arg(long, value_delimiter = ',')]
         skip: Vec<String>,
     },
+    /// Print a shell completion script (e.g. eval "$(gsct completion bash)")
+    Completion {
+        /// Shell to generate the script for
+        #[arg(value_parser = ["bash", "zsh"])]
+        shell: String,
+    },
+    /// Print completion candidates (used by the completion script)
+    #[command(name = "__complete", hide = true)]
+    Complete {
+        /// Alias name followed by the words typed so far
+        #[arg(trailing_var_arg = true, allow_hyphen_values = true)]
+        args: Vec<String>,
+    },
     /// Run an alias (e.g. gsct gd 1)
     #[command(external_subcommand)]
     Alias(Vec<String>),
@@ -73,6 +87,14 @@ fn run() -> Result<i32> {
         }
         Command::InstallLinks { dir, force, skip } => {
             links::install(&dir, force, &skip)?;
+            0
+        }
+        Command::Completion { shell } => {
+            complete::print_script(&shell)?;
+            0
+        }
+        Command::Complete { args } => {
+            complete::run(&args)?;
             0
         }
         Command::Alias(args) => aliases::run(&args)?,

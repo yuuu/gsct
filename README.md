@@ -88,6 +88,25 @@ gsct install-links ~/.local/bin
 
 `gs` saves the mapping between numbers and files to `.git/gsct-status`.
 
+### Tab completion
+
+Add one of the following to your shell configuration file to complete branches and remotes with the Tab key.
+
+```bash
+# ~/.bashrc
+eval "$(gsct completion bash)"
+
+# ~/.zshrc (after compinit)
+eval "$(gsct completion zsh)"
+```
+
+    gco f<Tab>          # branches (also "feature/x" for "origin/feature/x")
+    gps <Tab>           # remotes (origin, ...)
+    gps origin <Tab>    # branches
+    gm, grb, gbd, ...   # branches
+
+When there is no candidate, the shell falls back to file name completion.
+
 ## Development
 
     mise run ci   # format check, lint and tests (same as CI)

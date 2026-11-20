@@ -119,7 +119,7 @@ pub const ALIASES: &[Alias] = &[
 ];
 
 /// Finds an alias by name
-fn find(name: &str) -> Option<&'static Alias> {
+pub fn find(name: &str) -> Option<&'static Alias> {
     ALIASES.iter().find(|alias| alias.name == name)
 }
 
